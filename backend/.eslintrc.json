@@ -1,0 +1,23 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["import"],
+  "extends": ["eslint:recommended"],
+  "rules": {
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      { "ts": "always", "js": "never" }
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts"]
+      }
+    }
+  }
+}

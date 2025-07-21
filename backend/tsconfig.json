@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "*": ["./*.ts", "./*"] // Prioritize .ts extensions
+    },
+    "plugins": [
+      {
+        "name": "typescript-extension-resolver",
+        "extension": ".ts" // Force .ts resolution
+      }
+    ],
+    "noEmit": true, // Disable default emit to prevent .js output
+    "allowImportingTsExtensions": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.js", "node_modules"]
+}

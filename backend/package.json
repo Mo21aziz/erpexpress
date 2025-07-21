@@ -1,10 +1,13 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon -e ts --exec \"tsx ./index.ts\"",
+    "type-check": "tsc --noEmit",
+    "build": "tsc",
+    "start": "tsx ./index.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +19,14 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.15",
     "nodemon": "^3.1.10",
-    "prisma": "^6.12.0"
+    "prisma": "^6.12.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "eslint": "^8.0.0",
+    "eslint-plugin-import": "^2.29.0"
   }
 }
