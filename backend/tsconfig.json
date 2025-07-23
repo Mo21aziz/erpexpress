@@ -1,19 +1,15 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "paths": {
-      "*": ["./*.ts", "./*"] // Prioritize .ts extensions
-    },
-    "plugins": [
-      {
-        "name": "typescript-extension-resolver",
-        "extension": ".ts" // Force .ts resolution
-      }
-    ],
-    "noEmit": true, // Disable default emit to prevent .js output
-    "allowImportingTsExtensions": true
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.ts"],
-  "exclude": ["**/*.js", "node_modules"]
+  "include": ["src/**/*.ts", "prisma/**/*.ts"],
+  "exclude": ["node_modules"]
 }
