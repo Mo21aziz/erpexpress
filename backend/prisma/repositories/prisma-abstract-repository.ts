@@ -33,9 +33,6 @@ export class BaseRepository<T> {
       search,
     } = queryObject;
     let where = parseFilters(filter, options, search, await this.getFields());
-    if (!supportSoftDelete) {
-      where = { ...where, deletedAt: null };
-    }
     const orderBy = parseSort(sort);
     const take = parseInt(size, 10);
     const skip = (parseInt(page, 10) - 1) * take;
@@ -69,9 +66,6 @@ export class BaseRepository<T> {
   }
 
   async findAll(supportSoftDelete: boolean = false): Promise<T[]> {
-    if (!supportSoftDelete) {
-      return this.model.findMany({ where: { deletedAt: null } });
-    }
     return this.model.findMany();
   }
 
@@ -83,9 +77,6 @@ export class BaseRepository<T> {
     const { filter, sort, fields, join, search } = queryObject;
 
     let where = parseFilters(filter, options, search, await this.getFields());
-    if (!supportSoftDelete) {
-      where = { ...where, deletedAt: null };
-    }
     const orderBy = parseSort(sort);
     const select = parseSelect(fields);
     const include = parseJoin(join);
@@ -115,9 +106,6 @@ export class BaseRepository<T> {
     id: number | string,
     supportSoftDelete: boolean = false
   ): Promise<T | null> {
-    if (!supportSoftDelete) {
-      return this.model.findUnique({ where: { id, deletedAt: null } });
-    }
     return this.model.findUnique({ where: { id } });
   }
 

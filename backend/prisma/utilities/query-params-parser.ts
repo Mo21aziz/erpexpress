@@ -7,7 +7,8 @@ function parseCondition(
   const [field, operator, value] = condition.split(
     options.LOOKUP_DELIMITER || "||"
   );
-  const parsedValue = parseValue(value, operator);
+  // Force id to always be a string
+  const parsedValue = field === 'id' ? String(value) : parseValue(value, operator);
 
   let conditionObj: ILooseObject = {};
 
