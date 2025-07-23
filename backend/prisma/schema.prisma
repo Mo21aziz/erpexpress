@@ -2,6 +2,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
+
+generator typescriptInterfaces {
+  provider = "prisma-generator-typescript-interfaces"
+ 
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
@@ -18,6 +25,8 @@ model User {
 
   employee Employee?
   admin    Admin?
+
+  refreshToken String? 
 }
 
 model Role {
