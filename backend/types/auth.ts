@@ -1,0 +1,34 @@
+import { Employee, Admin } from "./user";
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  role_id: string;
+  role?: Role;
+  employee?: Employee | null;
+  admin?: Admin | null;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  users?: User[];
+}
+
+export interface ConnectPayload {
+  email: string;
+  password: string;
+}
+
+export interface ConnectResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+export interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+}
