@@ -1,13 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 
-import { IOptionsObject, IQueryObject } from "../interfaces/query-params.ts";
+import { IOptionsObject, IQueryObject } from "../interfaces/query-params";
 import {
   parseFilters,
   parseJoin,
   parseSelect,
   parseSort,
-} from "../utilities/query-params-parser.ts";
-import { Paginated } from "../interfaces/pagination.ts";
+} from "../utilities/query-params-parser";
+import { Paginated } from "../interfaces/pagination";
 
 export class BaseRepository<T> {
   protected prisma: PrismaClient;
@@ -118,9 +118,14 @@ export class BaseRepository<T> {
   }
 
   async update(id: number | string, data: Partial<T>): Promise<T> {
+    // Remove role_id if present (for User/Role models)
+    const { role_id, ...rest } = data as any;
     return this.model.update({
       where: { id },
-      data,
+      data: {
+        ...rest,
+        ...(role_id ? { role: { connect: { id: role_id } } } : {}),
+      },
     });
   }
 
@@ -205,6 +210,7 @@ export class BaseRepository<T> {
   }
 
   async delete(id: number | string): Promise<T> {
+    // Use hard delete for User and Role (no deletedAt field)
     return this.model.delete({
       where: { id },
     });

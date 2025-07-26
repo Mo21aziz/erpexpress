@@ -1,6 +1,6 @@
 import { IQueryObject } from "../../../prisma/interfaces/query-params";
 import { Paginated } from "../../../prisma/interfaces/pagination";
-import { User, Role } from "../../../types/user";
+import { User, Role, CreateUserInput } from "../../../types/user";
 import { UserRepository } from "../repositories/user.repository";
 import { hashPassword } from "../../../lib/utils/hash.util";
 import { PrismaClient } from "@prisma/client";
@@ -11,7 +11,7 @@ interface RolePermission {
   };
 }
 
-interface UserWithRole extends Omit<User, 'role'> {
+interface UserWithRole extends Omit<User, "role"> {
   role?: Role | null;
 }
 
@@ -40,7 +40,8 @@ export class UserService {
     return this.userRepository.findOneByCondition(queryObject);
   }
 
-  async createUser(data: Partial<User>): Promise<User> {
+  async createUser(data: CreateUserInput): Promise<User> {
+    // Optionally validate required fields here
     const user = await this.getUserByCondition({
       filter: `(username||$eq||${data.username};email||$eq||${data.email})`,
     });
@@ -72,13 +73,13 @@ export class UserService {
     try {
       // Debug: log the type and value of userId
       console.debug("Fetching user with role:", userId, typeof userId);
-      
+
       // Always use string for id filter
       const idString = String(userId);
-      const user = await this.userRepository.findOneByCondition({
+      const user = (await this.userRepository.findOneByCondition({
         filter: `id||$eq||${idString}`,
-        join: "role"
-      }) as UserWithRole;
+        join: "role",
+      })) as UserWithRole;
 
       if (!user) {
         console.debug("User not found:", userId);
@@ -92,4 +93,3 @@ export class UserService {
     }
   }
 }
-

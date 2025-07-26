@@ -4,10 +4,11 @@ import { UserService } from "./users-management/services/user.service";
 import { UserRepository } from "./users-management/repositories/user.repository";
 import { RoleRepository } from "./users-management/repositories/role.repository";
 import { RoleService } from "./users-management/services/role.service";
-
 import { AuthService } from "./auth/services/auth.service";
-
-
+import { CategoryService } from "./categories-managements/services/category.service";
+import { CategoryRepository } from "./categories-managements/repositories/category.repository";
+import { ArticleRepository } from "./categories-managements/repositories/article.repository";
+import { ArticleService } from "./categories-managements/services/article.service";
 
 
 const prisma = new PrismaClient();
@@ -19,7 +20,12 @@ const roleService = new RoleService(
   new RoleRepository(prisma),
 );
 
-
+// categories management
+const categoryRepository = new CategoryRepository(prisma);
+const categoryService = new CategoryService(categoryRepository, prisma);
+//article management
+const articleRepository = new ArticleRepository(prisma);
+const articleService = new ArticleService(articleRepository, prisma);
 
 
 
@@ -28,9 +34,9 @@ const container = {
   AuthService: authService,
   UserService: userService,
   RoleService: roleService,
- 
-
-  // Chat services
+  CategoryService: categoryService,
+  ArticleService: articleService,
+  
 
 
   // Prisma client
