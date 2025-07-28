@@ -31,4 +31,15 @@ export interface RegisterPayload {
   username: string;
   email: string;
   password: string;
+  role_id?: string;  // Make it optional in the payload
+}
+export interface AuthResponse {
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    role_id: string;
+  };
+  accessToken: string;
+  refreshToken: string;
 }
