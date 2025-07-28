@@ -2,94 +2,74 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
-
-generator typescriptInterfaces {
-  provider = "prisma-generator-typescript-interfaces"
- 
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+model Article {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  price       Decimal?   @db.Decimal(10, 2)
+  collisage   String
+  category_id String
+  category    Category  @relation(fields: [category_id], references: [id])
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  description String
+  articles    Article[]
+  commandes   BonDeCommandeCategory[]
+}
+
+model BonDeCommandeCategory {
+  id               String         @id @default(uuid())
+  category_id      String
+  category         Category       @relation(fields: [category_id], references: [id])
+  bon_de_commande_id String
+  bon_de_commande  BonDeCommande  @relation(fields: [bon_de_commande_id], references: [id])
+}
+
+model BonDeCommande {
+  id                  String                    @id @default(uuid())
+  created_at          DateTime                 @default(now())
+  description         String
+  status              String
+  employee_id         String
+  employee            Employee                 @relation(fields: [employee_id], references: [id])
+  categories          BonDeCommandeCategory[]
+}
+
+model Employee {
+  id               String           @id @default(uuid())
+  user_id          String           @unique
+  user             User             @relation(fields: [user_id], references: [id])
+  bons_de_commande BonDeCommande[]
+}
+
 model User {
-  id       String  @id @default(uuid())
-  username String
-  email    String  @unique
-  password String
-
-  role_id  String
-  role     Role    @relation(fields: [role_id], references: [id])
-
-  employee Employee?
-  admin    Admin?
-
+  id           String    @id @default(uuid())
+  username     String
+  email        String    @unique
+  password     String
+  role_id      String
+  role         Role      @relation(fields: [role_id], references: [id])
+  employee     Employee?
+  admin        Admin?
   refreshToken String? 
 }
 
 model Role {
-  id   String  @id @default(uuid())
-  name String  @unique
-
+  id    String  @id @default(uuid())
+  name  String  @unique
   users User[]
 }
 
 model Admin {
-  id       String @id @default(uuid())
-
-  user_id  String @unique
-  user     User   @relation(fields: [user_id], references: [id])
-}
-
-model Employee {
-  id         String @id @default(uuid())
-
-  user_id    String @unique
-  user       User   @relation(fields: [user_id], references: [id])
-
-  bons_de_commande BonDeCommande[]
-}
-
-model BonDeCommande {
-  id           String              @id @default(uuid())
-  created_at   DateTime            @default(now())
-  description  String
-  status       String
-
-  employee_id  String
-  employee     Employee            @relation(fields: [employee_id], references: [id])
-
-  commande_categories CommandeCategory[]
-}
-
-model CommandeCategory {
-  id                  String     @id @default(uuid())
-
-  bon_de_commande_id  String
-  bon_de_commande     BonDeCommande @relation(fields: [bon_de_commande_id], references: [id])
-
-  category_id         String
-  category            Category  @relation(fields: [category_id], references: [id])
-
-  article             Article?
-}
-
-model Category {
-  id          String              @id @default(uuid())
-  name        String
-  description String
-
-  commande_categories CommandeCategory[]
-}
-
-model Article {
-  id                    String           @id @default(uuid())
-  name                  String
-  description           String
-  price                 Decimal          @db.Decimal(10, 2)
-
-  commande_category_id  String           @unique
-  commande_category     CommandeCategory @relation(fields: [commande_category_id], references: [id])
+  id      String @id @default(uuid())
+  user_id String @unique
+  user    User   @relation(fields: [user_id], references: [id])
 }
