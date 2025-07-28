@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ChefHat, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { auth } from "../../api/auth";
 
 function Logo() {
   return (
@@ -118,12 +120,69 @@ function SigninHeader() {
 }
 
 function SigninForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    try {
+      const response = await auth.connect({ email, password });
+      setSuccess(true);
+      // Add a slight delay before redirecting to show the success message
+      setTimeout(() => {
+        navigate("/coming-soon");
+      }, 1000);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Erreur de connexion");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <form className="space-y-4">
-        <EmailInput id="email" required />
-        <PasswordInput id="password" required />
-
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-gray-700">
+            Email
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 h-4 w-4 text-green-600" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="votre@email.com"
+              className="pl-10 border-gray-200 focus:border-green-500 focus:ring-green-500/20"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-gray-700">
+            Mot de passe
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 h-4 w-4 text-red-600" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              className="pl-10 pr-10 border-gray-200 focus:border-red-500 focus:ring-red-500/20"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <input
@@ -141,21 +200,27 @@ function SigninForm() {
           <Button
             variant="link"
             className="px-0 font-normal text-red-600 hover:text-red-700"
+            type="button"
           >
             Mot de passe oublié ?
           </Button>
         </div>
-
-        <Button type="submit" className="w-full">
-          Se connecter
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Connexion..." : "Se connecter"}
         </Button>
+        {error && (
+          <div className="text-red-600 text-sm text-center">{error}</div>
+        )}
+        {success && (
+          <div className="text-green-600 text-sm text-center">
+            Connexion réussie !
+          </div>
+        )}
       </form>
-
       <div className="relative">
         <Separator />
         <div className="absolute inset-0 flex items-center justify-center"></div>
       </div>
-
       <div className="text-center text-sm"></div>
     </div>
   );
