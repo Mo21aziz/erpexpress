@@ -47,7 +47,7 @@ export interface CommandeCategory {
   bon_de_commande?: BonDeCommande;
   category_id: string;
   category?: Category;
-  article?: Article | null;
+  articles?: Article[];
 }
 
 export interface Category {

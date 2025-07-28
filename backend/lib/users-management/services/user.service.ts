@@ -1,28 +1,19 @@
 import { IQueryObject } from "../../../prisma/interfaces/query-params";
 import { Paginated } from "../../../prisma/interfaces/pagination";
-import { User, Role, CreateUserInput } from "../../../types/user";
+import { User, CreateUserInput, UserWithRole } from "../../../types/user";
 import { UserRepository } from "../repositories/user.repository";
 import { hashPassword } from "../../../lib/utils/hash.util";
 import { PrismaClient } from "@prisma/client";
-
-interface RolePermission {
-  permission: {
-    label: string;
-  };
-}
-
-interface UserWithRole extends Omit<User, "role"> {
-  role?: Role | null;
-}
+import { ParsedQs } from "qs";
 
 export class UserService {
-  private userRepository: UserRepository;
-  private prisma: PrismaClient;
-
-  constructor(userRepository: UserRepository, prisma: PrismaClient) {
-    this.userRepository = userRepository;
-    this.prisma = prisma;
+  countUsers(query: ParsedQs) {
+    throw new Error("Method not implemented.");
   }
+  constructor(
+    private userRepository: UserRepository,
+    private prisma: PrismaClient
+  ) {}
 
   async getPaginatedUsers(queryObject: IQueryObject): Promise<Paginated<User>> {
     return this.userRepository.findPaginated(queryObject);
@@ -36,21 +27,41 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
-  async getUserByCondition(queryObject: IQueryObject) {
+  async getUserByCondition(queryObject: IQueryObject): Promise<User | null> {
     return this.userRepository.findOneByCondition(queryObject);
   }
 
   async createUser(data: CreateUserInput): Promise<User> {
-    // Optionally validate required fields here
-    const user = await this.getUserByCondition({
+    // Validate required fields
+    if (!data.role_id) {
+      throw new Error("Role ID is required");
+    }
+
+    // Check if user exists
+    const existingUser = await this.getUserByCondition({
       filter: `(username||$eq||${data.username};email||$eq||${data.email})`,
     });
-    if (user) {
+
+    if (existingUser) {
       throw new Error("User already exists");
     }
-    const hashedPassword = data.password && (await hashPassword(data.password));
-    data.password = hashedPassword;
-    return this.userRepository.create(data);
+
+    // Verify role exists
+    const roleExists = await this.prisma.role.findUnique({
+      where: { id: data.role_id }
+    });
+
+    if (!roleExists) {
+      throw new Error("Specified role does not exist");
+    }
+
+    // Hash password
+    const hashedPassword = await hashPassword(data.password);
+    
+    return this.userRepository.create({
+      ...data,
+      password: hashedPassword
+    });
   }
 
   async updateUser(id: string, data: Partial<User>): Promise<User> {
@@ -61,35 +72,29 @@ export class UserService {
     return this.userRepository.delete(id);
   }
 
-  async countUsers(where: any = {}): Promise<number> {
-    return this.userRepository.count(where);
-  }
-
-  async findOneByCondition(queryObject: IQueryObject): Promise<User | null> {
-    return this.userRepository.findOneByCondition(queryObject);
-  }
-
   async getUserWithRole(userId: string): Promise<UserWithRole | null> {
     try {
-      // Debug: log the type and value of userId
-      console.debug("Fetching user with role:", userId, typeof userId);
-
-      // Always use string for id filter
-      const idString = String(userId);
-      const user = (await this.userRepository.findOneByCondition({
-        filter: `id||$eq||${idString}`,
+      const user = await this.userRepository.findOneByCondition({
+        filter: `id||$eq||${userId}`,
         join: "role",
-      })) as UserWithRole;
+      });
 
-      if (!user) {
-        console.debug("User not found:", userId);
-        return null;
-      }
-
-      return user;
+      return user as UserWithRole;
     } catch (error) {
       console.error("Error fetching user with role:", error);
       throw new Error("Failed to fetch user with role");
     }
+  }
+
+  async getDefaultRole(): Promise<string> {
+    const defaultRole = await this.prisma.role.findFirst({
+      where: { name: "USER" }
+    });
+
+    if (!defaultRole) {
+      throw new Error("Default role not found");
+    }
+
+    return defaultRole.id;
   }
 }

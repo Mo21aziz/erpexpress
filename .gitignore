@@ -1,0 +1,3 @@
+backend/tsconfig.json
+backend/docker-compose.yml
+backend/package-lock.json

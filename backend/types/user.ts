@@ -29,16 +29,22 @@ export interface Employee {
   user_id: string;
   user?: User;
 }
+export interface CreateUserInput {
+  username: string;
+  email: string;
+  password: string;
+  role_id: string;  // Keep required in the DB input
+}
 
-// For CREATE operations
-export type CreateUserInput = Omit<User, "id" | "role" | "employee" | "admin" | "refreshToken">;
 
 // For UPDATE operations
 export type UpdateUserInput = Partial<CreateUserInput> & {
   currentPassword?: string;
   newPassword?: string;
 };
-
+export interface UserWithRole extends Omit<User, "role"> {
+  role?: Role | null;
+}
 // For API responses
 export interface UserResponse extends Omit<User, "password"> {
   role?: {
