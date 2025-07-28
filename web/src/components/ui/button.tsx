@@ -5,12 +5,15 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "ghost" | "link";
   size?: "default" | "sm" | "lg";
+  asChild?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
+  ({ className, variant = "default", size = "default", asChild = false, ...props }, ref) => {
+    const Comp = asChild ? React.Fragment : "button";
+    
     return (
-      <button
+      <Comp
         className={cn(
           "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
           {
@@ -25,9 +28,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "h-9 rounded-md px-3": size === "sm",
             "h-11 rounded-md px-8": size === "lg",
           },
-          className
+          !asChild && className
         )}
-        ref={ref}
+        ref={asChild ? undefined : ref}
         {...props}
       />
     );

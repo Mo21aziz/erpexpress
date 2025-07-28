@@ -1,21 +1,12 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { Signin } from "./components/Auth/Signin";
-import { ComingSoon } from "./components/ComingSoon";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./router/router";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/signin" element={<Signin />} />
-        <Route path="/coming-soon" element={<ComingSoon />} />
-        <Route path="/" element={<Navigate to="/signin" replace />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   );
 }
 

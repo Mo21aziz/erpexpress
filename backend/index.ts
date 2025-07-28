@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
+import cors from "cors";
+import { CorsOptions } from "cors";
 import connect from "./api/auth/connect";
 import categoryRouter from "./api/category/cat.management";
 import articleRouter from "./api/category/article.management";
@@ -20,6 +22,16 @@ try {
 const app = express();
 const PORT = 5000;
 
+// Enable CORS
+const corsOptions: CorsOptions = {
+  origin: ["http://localhost:5173", "http://localhost:3000"], // Vite dev server and potential other ports
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 app.get("/api", (req: Request, res: Response) => {
@@ -31,6 +43,103 @@ app.get("/api", (req: Request, res: Response) => {
 
 app.get("/test", (req: Request, res: Response) => {
   res.json({ message: "Server is working!" });
+});
+
+// Debug endpoint to check users
+app.get("/api/debug/users", async (req: Request, res: Response) => {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    await prisma.$disconnect();
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch users", details: error });
+  }
+});
+
+// Debug endpoint to check roles
+app.get("/api/debug/roles", async (req: Request, res: Response) => {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
+    const roles = await prisma.role.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    await prisma.$disconnect();
+    res.json({ roles });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch roles", details: error });
+  }
+});
+
+// Setup endpoint to create default role and test user
+app.post("/api/debug/setup", async (req: Request, res: Response) => {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
+    // Create default role if it doesn't exist
+    let defaultRole = await prisma.role.findFirst({
+      where: { name: "USER" },
+    });
+
+    if (!defaultRole) {
+      defaultRole = await prisma.role.create({
+        data: { name: "USER" },
+      });
+    }
+
+    // Create test user if it doesn't exist
+    let testUser = await prisma.user.findFirst({
+      where: { email: "test@example.com" },
+    });
+
+    if (!testUser) {
+      const bcrypt = await import("bcrypt");
+      const hashedPassword = await bcrypt.hash("password123", 10);
+
+      testUser = await prisma.user.create({
+        data: {
+          username: "testuser",
+          email: "test@example.com",
+          password: hashedPassword,
+          role_id: defaultRole.id,
+        },
+      });
+    }
+
+    await prisma.$disconnect();
+    res.json({
+      message: "Setup completed",
+      defaultRole,
+      testUser: {
+        id: testUser.id,
+        username: testUser.username,
+        email: testUser.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to setup", details: error });
+  }
 });
 
 app.use("/api/auth", connect);
