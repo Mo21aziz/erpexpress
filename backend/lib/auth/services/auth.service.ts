@@ -1,7 +1,11 @@
 import { UserService } from "../../users-management/services/user.service";
 import { comparePasswords } from "../../utils/hash.util";
 import { User, UserWithRole } from "../../../types/user";
-import { ConnectPayload, RegisterPayload, AuthResponse } from "../../../types/auth";
+import {
+  ConnectPayload,
+  RegisterPayload,
+  AuthResponse,
+} from "../../../types/auth";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import AppConfig from "../../config/app.config";
@@ -31,15 +35,22 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async saveRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  private async saveRefreshToken(
+    userId: string,
+    refreshToken: string
+  ): Promise<void> {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
     await this.userService.updateUser(userId, { refreshToken: hashedToken });
   }
 
   async connect(payload: ConnectPayload): Promise<AuthResponse> {
+    console.log("AuthService.connect called with payload:", payload);
+
     const user = await this.userService.getUserByCondition({
-      filter: `email||$eq||${payload.email}`,
+      filter: `username||$eq||${payload.username}`,
     });
+
+    console.log("User found:", user);
 
     if (!user || !user.password) {
       throw new Error("Invalid credentials");
@@ -55,7 +66,9 @@ export class AuthService {
       throw new Error("User not found");
     }
 
-    const { accessToken, refreshToken } = await this.generateTokens(userWithRole);
+    const { accessToken, refreshToken } = await this.generateTokens(
+      userWithRole
+    );
     await this.saveRefreshToken(user.id, refreshToken);
 
     return {
@@ -80,15 +93,19 @@ export class AuthService {
     }
 
     // Set default role if not provided
-    const role_id = payload.role_id || await this.userService.getDefaultRole();
+    const role_id =
+      payload.role_id || (await this.userService.getDefaultRole());
 
     return this.userService.createUser({
       ...payload,
-      role_id
+      role_id,
     });
   }
 
-  async refreshToken(userId: string, refreshToken: string): Promise<{
+  async refreshToken(
+    userId: string,
+    refreshToken: string
+  ): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
@@ -107,7 +124,7 @@ export class AuthService {
       throw new Error("User not found");
     }
 
-    const { accessToken, refreshToken: newRefreshToken } = 
+    const { accessToken, refreshToken: newRefreshToken } =
       await this.generateTokens(userWithRole);
     await this.saveRefreshToken(userId, newRefreshToken);
 

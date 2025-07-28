@@ -18,7 +18,7 @@ export interface Role {
 }
 
 export interface ConnectPayload {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -31,7 +31,7 @@ export interface RegisterPayload {
   username: string;
   email: string;
   password: string;
-  role_id?: string;  // Make it optional in the payload
+  role_id?: string; // Make it optional in the payload
 }
 export interface AuthResponse {
   user: {
