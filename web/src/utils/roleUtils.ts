@@ -3,6 +3,7 @@ export const ROLES = {
   RESPONSIBLE: "Responsible",
   ADMIN: "Admin",
   EMPLOYEE: "Employee",
+  GERANT: "Gerant",
 } as const;
 
 // Helper functions
@@ -18,8 +19,16 @@ export const isResponsible = (roleName: string): boolean => {
   return roleName === ROLES.RESPONSIBLE;
 };
 
+export const isGerant = (roleName: string): boolean => {
+  return roleName === ROLES.GERANT;
+};
+
 export const canAccessAdminPages = (roleName: string): boolean => {
   return isAdmin(roleName) || isResponsible(roleName);
+};
+
+export const canAccessGerantPages = (roleName: string): boolean => {
+  return isAdmin(roleName) || isResponsible(roleName) || isGerant(roleName);
 };
 
 export const canAccessEmployeePages = (roleName: string): boolean => {

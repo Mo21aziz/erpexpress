@@ -10,7 +10,7 @@ datasource db {
 model Article {
   id                  String    @id @default(uuid())
   name                String
-  description         String
+  description         String?
   price               Decimal?  @db.Decimal(10, 2)
   collisage           String
   type                String    @default("catering") // "catering" or "sonodis"
@@ -24,7 +24,7 @@ model Article {
 model Category {
   id          String     @id @default(uuid())
   name        String
-  description String
+  description String?
   articles    Article[]
   commandes   BonDeCommandeCategory[]
 }

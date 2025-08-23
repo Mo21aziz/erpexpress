@@ -142,10 +142,10 @@ export class BonDeCommandeService {
       `[BonDeCommandeService] getAllBonDeCommande called with userId: ${userId}, userRole: ${userRole}`
     );
 
-    // If user is not admin or responsible, only show their own bon de commande
-    if (userRole !== "Admin" && userRole !== "Responsible" && userId) {
+    // If user is not admin, responsible, or gerant, only show their own bon de commande
+    if (userRole !== "Admin" && userRole !== "Responsible" && userRole !== "Gerant" && userId) {
       console.log(
-        `[BonDeCommandeService] User is not admin/responsible, filtering by employee_id`
+        `[BonDeCommandeService] User is not admin/responsible/gerant, filtering by employee_id`
       );
       // Find the employee record for this user
       const employee = await this.prisma.employee.findFirst({
@@ -164,7 +164,7 @@ export class BonDeCommandeService {
       }
     } else {
       console.log(
-        `[BonDeCommandeService] User is admin/responsible, showing all bon de commande`
+        `[BonDeCommandeService] User is admin/responsible/gerant, showing all bon de commande`
       );
     }
 
@@ -265,6 +265,42 @@ export class BonDeCommandeService {
           },
         },
       })) as BonDeCommande;
+    });
+  }
+
+  async updateStatus(id: string, status: string): Promise<BonDeCommande> {
+    // Validate status
+    if (status !== "en attente" && status !== "confirmer") {
+      throw new Error("Status must be 'en attente' or 'confirmer'");
+    }
+
+    return await this.prisma.bonDeCommande.update({
+      where: { id },
+      data: { status },
+      include: {
+        employee: {
+          include: {
+            user: true,
+          },
+        },
+        categories: {
+          include: {
+            category: true,
+            article: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateCategory(id: string, data: { quantite_a_stocker?: number; quantite_a_demander?: number }): Promise<any> {
+    return await this.prisma.bonDeCommandeCategory.update({
+      where: { id },
+      data,
+      include: {
+        category: true,
+        article: true,
+      },
     });
   }
 

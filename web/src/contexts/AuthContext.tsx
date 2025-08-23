@@ -62,6 +62,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Listen for session expiration events
+  useEffect(() => {
+    const handleSessionExpired = (event: CustomEvent) => {
+      console.log("Session expired event received:", event.detail);
+      logout();
+    };
+
+    window.addEventListener('sessionExpired', handleSessionExpired as EventListener);
+
+    return () => {
+      window.removeEventListener('sessionExpired', handleSessionExpired as EventListener);
+    };
+  }, []);
+
   const login = (authData: ConnectResponse) => {
     const userData: User = {
       id: authData.user.id,

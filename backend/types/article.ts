@@ -3,7 +3,7 @@ import { Decimal } from "@prisma/client/runtime/library";
 export interface Article {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: Decimal | number | null;
   collisage: string;
   type: string; // "catering" or "sonodis"
@@ -18,7 +18,7 @@ export interface Article {
 
 export type CreateArticleInput = {
   name: string;
-  description: string;
+  description?: string;
   price: number | Decimal;
   collisage: string;
   type: string; // "catering" or "sonodis"

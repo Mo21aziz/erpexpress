@@ -233,7 +233,7 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
     const bonDeCommande =
       await container.BonDeCommandeService.createBonDeCommande({
         description: dateDescription,
-        status: "pending",
+        status: "en attente",
         employee_id: finalEmployeeId,
         created_at: now, // Use current date for creation timestamp
         target_date: tomorrow, // Use tomorrow's date for target date
@@ -296,6 +296,58 @@ router.get("/:id", authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
+// Update bon de commande category
+router.put(
+  "/category/:id",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      console.log(
+        "[BonDeCommande API] Updating category ID:",
+        req.params.id,
+        "Data:",
+        req.body
+      );
+
+      const { quantite_a_stocker, quantite_a_demander } = req.body;
+
+      if (
+        quantite_a_stocker === undefined &&
+        quantite_a_demander === undefined
+      ) {
+        return res
+          .status(400)
+          .json({ error: "At least one quantity field must be provided" });
+      }
+
+      const updateData: any = {};
+      if (quantite_a_stocker !== undefined)
+        updateData.quantite_a_stocker = quantite_a_stocker;
+      if (quantite_a_demander !== undefined)
+        updateData.quantite_a_demander = quantite_a_demander;
+
+      const updatedCategory =
+        await container.BonDeCommandeService.updateCategory(
+          req.params.id,
+          updateData
+        );
+
+      if (!updatedCategory) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+
+      console.log(
+        "[BonDeCommande API] Category updated successfully:",
+        updatedCategory
+      );
+      res.status(200).json(updatedCategory);
+    } catch (error: any) {
+      console.error("[BonDeCommande API] Error updating category:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
 // Update bon de commande
 router.put("/:id", authenticateToken, async (req: Request, res: Response) => {
   try {
@@ -309,6 +361,49 @@ router.put("/:id", authenticateToken, async (req: Request, res: Response) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// Update bon de commande status
+router.put(
+  "/:id/status",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      console.log(
+        "[BonDeCommande API] Updating status for ID:",
+        req.params.id,
+        "New status:",
+        req.body.status
+      );
+
+      const { status } = req.body;
+
+      if (!status || (status !== "en attente" && status !== "confirmer")) {
+        return res
+          .status(400)
+          .json({ error: "Status must be 'en attente' or 'confirmer'" });
+      }
+
+      const updatedBonDeCommande =
+        await container.BonDeCommandeService.updateStatus(
+          req.params.id,
+          status
+        );
+
+      if (!updatedBonDeCommande) {
+        return res.status(404).json({ error: "Bon de commande not found" });
+      }
+
+      console.log(
+        "[BonDeCommande API] Status updated successfully:",
+        updatedBonDeCommande
+      );
+      res.status(200).json(updatedBonDeCommande);
+    } catch (error: any) {
+      console.error("[BonDeCommande API] Error updating status:", error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
 
 // Delete bon de commande
 router.delete(

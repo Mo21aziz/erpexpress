@@ -3,7 +3,7 @@ import { Article } from "@prisma/client";
 export interface Category {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   commande_categories?: CommandeCategory[]; // Optional relation
 }
 

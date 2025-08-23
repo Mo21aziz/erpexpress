@@ -20,7 +20,7 @@ import { useState } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Button } from "../../ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { isAdmin } from "../../../utils/roleUtils";
+import { isAdmin, canAccessGerantPages } from "../../../utils/roleUtils";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -67,12 +67,15 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
 
   // Check if user is admin
   const userIsAdmin = user && user.role ? isAdmin(user.role.name) : false;
+  // Check if user can access gerant pages
+  const userCanAccessGerantPages = user && user.role ? canAccessGerantPages(user.role.name) : false;
 
   // Debug logging
   console.log("User:", user);
   console.log("User role:", user?.role);
   console.log("User role name:", user?.role?.name);
   console.log("Is admin:", userIsAdmin);
+  console.log("Can access gerant pages:", userCanAccessGerantPages);
 
   const toggleCommandMenu = () => setCommandOpen(!commandOpen);
   const toggleUsersMenu = () => setusersopen(!usersOpen);

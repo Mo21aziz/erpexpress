@@ -28,14 +28,12 @@ export function ArticleFormModal({
 }: ArticleFormModalProps) {
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     price: "",
     collisage: "",
     type: "catering",
   });
   const [errors, setErrors] = useState({
     name: "",
-    description: "",
     price: "",
     collisage: "",
     type: "",
@@ -48,7 +46,6 @@ export function ArticleFormModal({
     if (initialData) {
       setFormData({
         name: initialData.name || "",
-        description: initialData.description || "",
         price: initialData.price ? Number(initialData.price).toString() : "",
         collisage: initialData.collisage || "",
         type: initialData.type || "catering",
@@ -56,7 +53,6 @@ export function ArticleFormModal({
     } else {
       setFormData({
         name: "",
-        description: "",
         price: "",
         collisage: "",
         type: "catering",
@@ -64,7 +60,6 @@ export function ArticleFormModal({
     }
     setErrors({
       name: "",
-      description: "",
       price: "",
       collisage: "",
       type: "",
@@ -75,7 +70,6 @@ export function ArticleFormModal({
   const validate = () => {
     const newErrors = {
       name: "",
-      description: "",
       price: "",
       collisage: "",
       type: "",
@@ -85,11 +79,6 @@ export function ArticleFormModal({
 
     if (!formData.name.trim()) {
       newErrors.name = "Article name is required";
-      valid = false;
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
       valid = false;
     }
 
@@ -125,7 +114,7 @@ export function ArticleFormModal({
     try {
       const articleData = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
+        description: "", // Provide empty string for optional field
         price: formData.price ? Number(formData.price) : 0,
         collisage: formData.collisage.trim(),
         type: formData.type,
@@ -210,23 +199,6 @@ export function ArticleFormModal({
             />
             {errors.name && (
               <p className="text-sm text-red-600">{errors.name}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Enter article description"
-              rows={3}
-              required
-            />
-            {errors.description && (
-              <p className="text-sm text-red-600">{errors.description}</p>
             )}
           </div>
 

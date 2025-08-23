@@ -26,7 +26,7 @@ export class AuthService {
       email: user.email,
       roleId: user.role_id,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
+      exp: Math.floor(Date.now() / 1000) + 3 * 60 * 60, // 3 hours
     };
 
     const accessToken = jwt.sign(payload, AppConfig.JWT_SECRET);

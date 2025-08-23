@@ -8,8 +8,8 @@ import { X } from "lucide-react";
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (category: { name: string; description: string }) => Promise<void>;
-  initialData?: { name: string; description: string };
+  onSubmit: (category: { name: string }) => Promise<void>;
+  initialData?: { name: string };
   mode: "add" | "edit";
 }
 
@@ -21,25 +21,22 @@ export function CategoryModal({
   mode,
 }: CategoryModalProps) {
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setName(initialData.name);
-      setDescription(initialData.description);
     } else {
       setName("");
-      setDescription("");
     }
   }, [initialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && description.trim() && !isSubmitting) {
+    if (name.trim() && !isSubmitting) {
       setIsSubmitting(true);
       try {
-        await onSubmit({ name: name.trim(), description: description.trim() });
+        await onSubmit({ name: name.trim() });
         onClose();
       } catch (error) {
         // Error is handled by the parent component
@@ -80,17 +77,7 @@ export function CategoryModal({
             />
           </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description de la catégorie..."
-              rows={3}
-              required
-            />
-          </div>
+
 
           <div className="flex items-center justify-end space-x-2 pt-4">
             <Button type="button" variant="ghost" onClick={onClose}>

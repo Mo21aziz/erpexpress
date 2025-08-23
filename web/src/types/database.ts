@@ -24,13 +24,13 @@ export interface Role {
 export interface Category {
   id: string;
   name: string;
-  description: string;
+  description?: string;
 }
 
 export interface Article {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number | null;
   collisage: string;
   type: string; // "catering" or "sonodis"
@@ -72,6 +72,6 @@ export interface BonDeCommandeCategory {
   category: {
     id: string;
     name: string;
-    description: string;
+    description?: string;
   };
 }

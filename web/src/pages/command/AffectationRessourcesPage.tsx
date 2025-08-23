@@ -217,13 +217,13 @@ export function AffectationRessourcesPage() {
     }
   };
 
-  const handleSubmitCategory = async (categoryData: {
-    name: string;
-    description: string;
-  }) => {
+  const handleSubmitCategory = async (categoryData: { name: string }) => {
     try {
       if (modalMode === "add") {
-        const newCategory = await categoriesApi.createCategory(categoryData);
+        const newCategory = await categoriesApi.createCategory({
+          ...categoryData,
+          description: "", // Provide empty string for optional field
+        });
         const categoryWithStats: CategoryWithStats = {
           ...newCategory,
           resourceCount: 0, // New category starts with 0 articles
@@ -237,7 +237,10 @@ export function AffectationRessourcesPage() {
       } else if (editingCategory) {
         const updatedCategory = await categoriesApi.updateCategory(
           editingCategory.id,
-          categoryData
+          {
+            ...categoryData,
+            description: "", // Provide empty string for optional field
+          }
         );
         // Keep the existing article count when updating
         const categoryWithStats: CategoryWithStats = {
@@ -332,7 +335,7 @@ export function AffectationRessourcesPage() {
             key={category.id}
             id={category.id}
             name={category.name}
-            description={category.description}
+            description={category.description || ""}
             resourceCount={category.resourceCount}
             assignedCount={category.assignedCount}
             onEdit={handleEditCategory}
@@ -378,7 +381,6 @@ export function AffectationRessourcesPage() {
           editingCategory
             ? {
                 name: editingCategory.name,
-                description: editingCategory.description,
               }
             : undefined
         }

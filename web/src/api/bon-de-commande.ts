@@ -127,6 +127,41 @@ export const bonDeCommandeApi = {
     }
   },
 
+  // Update bon de commande status
+  updateStatus: async (id: string, status: string): Promise<BonDeCommande> => {
+    try {
+      const response = await api.put(`/api/bon-de-commande/${id}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to update bon de commande status:", error);
+      if (error instanceof AxiosError) {
+        throw new Error(
+          error.response?.data?.error || "Failed to update status"
+        );
+      }
+      throw new Error("Failed to update status");
+    }
+  },
+
+  // Update bon de commande category
+  updateBonDeCommandeCategory: async (categoryId: string, data: {
+    quantite_a_stocker?: number;
+    quantite_a_demander?: number;
+  }): Promise<any> => {
+    try {
+      const response = await api.put(`/api/bon-de-commande/category/${categoryId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to update bon de commande category:", error);
+      if (error instanceof AxiosError) {
+        throw new Error(
+          error.response?.data?.error || "Failed to update category"
+        );
+      }
+      throw new Error("Failed to update category");
+    }
+  },
+
   // Delete bon de commande
   deleteBonDeCommande: async (id: string): Promise<void> => {
     try {

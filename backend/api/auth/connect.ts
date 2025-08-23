@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import container from "../../lib/container";
+import AppConfig from "../../lib/config/app.config";
 
 const router = express.Router();
 
@@ -52,6 +54,29 @@ router.post("/register", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Register error:", error);
     res.status(400).json({ error: error.message, code: 400 });
+  }
+});
+
+router.post("/refresh", async (req: Request, res: Response) => {
+  const authService = container.AuthService;
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: "Refresh token is required" });
+    }
+
+    // Decode the refresh token to get user ID
+    const decoded = jwt.verify(refreshToken, AppConfig.JWT_SECRET) as any;
+    if (!decoded || !decoded.sub) {
+      return res.status(401).json({ error: "Invalid refresh token" });
+    }
+
+    const tokens = await authService.refreshToken(decoded.sub, refreshToken);
+    res.status(200).json(tokens);
+  } catch (error: any) {
+    console.error("Refresh token error:", error);
+    res.status(401).json({ error: "Invalid refresh token" });
   }
 });
 

@@ -65,6 +65,42 @@ export function ListesBonnesCommandePage() {
     }
   };
 
+  const handleStatusChange = async (
+    bonDeCommande: BonDeCommande,
+    newStatus: string
+  ) => {
+    try {
+      await bonDeCommandeApi.updateStatus(bonDeCommande.id, newStatus);
+
+      // Update the local state
+      setBonDeCommandes((prevBonDeCommandes) =>
+        prevBonDeCommandes.map((bdc) =>
+          bdc.id === bonDeCommande.id ? { ...bdc, status: newStatus } : bdc
+        )
+      );
+
+      toast({
+        title: "Succès",
+        description: `Statut mis à jour vers "${newStatus}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la mise à jour du statut",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBonDeCommandeUpdate = (updatedBonDeCommande: BonDeCommande) => {
+    setBonDeCommandes((prevBonDeCommandes) =>
+      prevBonDeCommandes.map((bdc) =>
+        bdc.id === updatedBonDeCommande.id ? updatedBonDeCommande : bdc
+      )
+    );
+    setSelectedBonDeCommande(updatedBonDeCommande);
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">
@@ -92,6 +128,7 @@ export function ListesBonnesCommandePage() {
             loading={loading}
             onBonDeCommandeClick={handleBonDeCommandeClick}
             onExportPDF={handleExportPDF}
+            onStatusChange={handleStatusChange}
           />
         </CardContent>
       </Card>
@@ -104,6 +141,8 @@ export function ListesBonnesCommandePage() {
           setSelectedBonDeCommande(null);
         }}
         bonDeCommande={selectedBonDeCommande}
+        onUpdate={handleBonDeCommandeUpdate}
+        onStatusChange={handleStatusChange}
       />
     </div>
   );

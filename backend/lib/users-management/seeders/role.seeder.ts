@@ -7,13 +7,10 @@ export async function seedRoles() {
   try {
     const upsertPromises = roles.map((role) =>
       prisma.role.upsert({
-        where: { label: role.label },
-        update: {
-          description: role.description,
-        },
+        where: { name: role.name },
+        update: {},
         create: {
-          label: role.label,
-          description: role.description,
+          name: role.name,
         },
       })
     );

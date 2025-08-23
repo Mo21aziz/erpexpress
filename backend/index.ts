@@ -144,6 +144,39 @@ app.post("/api/debug/setup", async (req: Request, res: Response) => {
   }
 });
 
+// Seed roles endpoint
+app.post("/api/debug/seed-roles", async (req: Request, res: Response) => {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
+    const roles = [
+      { name: "Responsible" },
+      { name: "Admin" },
+      { name: "Employee" },
+      { name: "Gerant" },
+    ];
+
+    const createdRoles = [];
+    for (const role of roles) {
+      const createdRole = await prisma.role.upsert({
+        where: { name: role.name },
+        update: {},
+        create: { name: role.name },
+      });
+      createdRoles.push(createdRole);
+    }
+
+    await prisma.$disconnect();
+    res.json({
+      message: "Roles seeded successfully",
+      roles: createdRoles,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to seed roles", details: error });
+  }
+});
+
 app.use("/api/auth", connect);
 app.use("/api/category", categoryRouter);
 app.use("/api/articles", articleRouter);
