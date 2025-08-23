@@ -12,6 +12,10 @@ interface User {
   username: string;
   email: string;
   role_id: string;
+  role?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface AuthContextType {
@@ -64,6 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       username: authData.user.username,
       email: authData.user.email,
       role_id: authData.user.role_id,
+      role: authData.user.role,
     };
 
     // Store in localStorage

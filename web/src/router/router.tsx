@@ -3,8 +3,13 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
 import { Signin } from "@/components/Auth/Signin";
 import { ComingSoon } from "@/components/ComingSoon";
-import { DashboardPage } from "@/pages/dashboard/DashboardPage";
+import { AffectationRessourcesPage } from "@/pages/command/AffectationRessourcesPage";
+import { ListesBonnesCommandePage } from "@/pages/command/ListesBonnesCommandePage";
+import { UserManagementPage } from "@/pages/user-management/UserManagementPage";
+import { UsersPage } from "@/pages/user-management/UsersPage";
+import { RolesPage } from "@/pages/user-management/RolesPage";
 import { ProtectedRoute } from "@/components/Auth/ProtectedRoute";
+import { RoleBasedRoute } from "@/components/Auth/RoleBasedRoute";
 import { SigninRedirect } from "@/components/Auth/SigninRedirect";
 
 export const router = createBrowserRouter([
@@ -30,7 +35,45 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <DashboardPage />,
+        element: <AffectationRessourcesPage />,
+      },
+      {
+        path: "affectation-ressources",
+        element: <AffectationRessourcesPage />,
+      },
+      {
+        path: "listes-bonnes-commande",
+        element: <ListesBonnesCommandePage />,
+      },
+      {
+        path: "user-management",
+        element: (
+          <RoleBasedRoute allowedRoles={["Admin", "Responsible"]}>
+            <UserManagementPage />
+          </RoleBasedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/user-management/users" replace />,
+          },
+          {
+            path: "users",
+            element: (
+              <RoleBasedRoute allowedRoles={["Admin", "Responsible"]}>
+                <UsersPage />
+              </RoleBasedRoute>
+            ),
+          },
+          {
+            path: "roles",
+            element: (
+              <RoleBasedRoute allowedRoles={["Admin", "Responsible"]}>
+                <RolesPage />
+              </RoleBasedRoute>
+            ),
+          },
+        ],
       },
     ],
   },

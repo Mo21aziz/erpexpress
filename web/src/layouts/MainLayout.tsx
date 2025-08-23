@@ -13,8 +13,8 @@ export const MainLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Desktop Sidebar - always rendered but width changes */}
-      <div className="hidden md:block">
+      {/* Desktop Sidebar - always visible */}
+      <div className="hidden md:flex bg-red-100">
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       </div>
 
@@ -25,12 +25,13 @@ export const MainLayout = () => {
             className="absolute inset-0 bg-black bg-opacity-50"
             onClick={toggleSidebar}
           />
-          <div className="absolute left-0 top-0 h-full">
+          <div className="absolute left-0 top-0 h-full w-64 z-50">
             <Sidebar isOpen={true} toggleSidebar={toggleSidebar} />
           </div>
         </div>
       )}
 
+      {/* Main content area */}
       <div
         className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
           isSidebarOpen ? "md:ml-64" : "md:ml-20"

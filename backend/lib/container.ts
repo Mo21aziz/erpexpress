@@ -9,16 +9,15 @@ import { CategoryService } from "./categories-managements/services/category.serv
 import { CategoryRepository } from "./categories-managements/repositories/category.repository";
 import { ArticleRepository } from "./categories-managements/repositories/article.repository";
 import { ArticleService } from "./categories-managements/services/article.service";
-
+import { BonDeCommandeService } from "./bon-de-commande/services/bon-de-commande.service";
+import { BonDeCommandeRepository } from "./bon-de-commande/repositories/bon-de-commande.repository";
 
 const prisma = new PrismaClient();
 
 // user-management + auth
 const userService = new UserService(new UserRepository(prisma), prisma);
 const authService = new AuthService(userService);
-const roleService = new RoleService(
-  new RoleRepository(prisma),
-);
+const roleService = new RoleService(new RoleRepository(prisma));
 
 // categories management
 const categoryRepository = new CategoryRepository(prisma);
@@ -27,7 +26,12 @@ const categoryService = new CategoryService(categoryRepository, prisma);
 const articleRepository = new ArticleRepository(prisma);
 const articleService = new ArticleService(articleRepository, prisma);
 
-
+//bon de commande management
+const bonDeCommandeRepository = new BonDeCommandeRepository(prisma);
+const bonDeCommandeService = new BonDeCommandeService(
+  bonDeCommandeRepository,
+  prisma
+);
 
 const container = {
   // Existing services
@@ -36,8 +40,7 @@ const container = {
   RoleService: roleService,
   CategoryService: categoryService,
   ArticleService: articleService,
-  
-
+  BonDeCommandeService: bonDeCommandeService,
 
   // Prisma client
   prisma,

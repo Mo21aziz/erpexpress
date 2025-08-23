@@ -6,6 +6,9 @@ export interface Article {
   description: string;
   price: Decimal | number | null;
   collisage: string;
+  type: string; // "catering" or "sonodis"
+  quantite_a_stocker: number;
+  quantite_a_demander: number;
   category_id: string;
   category?: {
     id: string;
@@ -18,6 +21,9 @@ export type CreateArticleInput = {
   description: string;
   price: number | Decimal;
   collisage: string;
+  type: string; // "catering" or "sonodis"
+  quantite_a_stocker: number;
+  quantite_a_demander: number;
   category_id: string;
 };
 

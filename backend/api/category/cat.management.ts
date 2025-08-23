@@ -66,10 +66,22 @@ router.put("/:id", async (req: Request, res: Response) => {
 // Delete category (hard delete)
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
-    const category = await container.CategoryService.deleteCategory(
-      req.params.id
-    );
-    res.status(200).json(category);
+    const { cascade } = req.query;
+
+    if (cascade === "true") {
+      // Cascade delete - delete category and all associated data
+      const category =
+        await container.CategoryService.deleteCategoryWithCascade(
+          req.params.id
+        );
+      res.status(200).json(category);
+    } else {
+      // Regular delete - check for dependencies first
+      const category = await container.CategoryService.deleteCategory(
+        req.params.id
+      );
+      res.status(200).json(category);
+    }
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }

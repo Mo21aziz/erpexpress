@@ -19,8 +19,15 @@ export class UserService {
     return this.userRepository.findPaginated(queryObject);
   }
 
-  async getAllUsers(queryObject: IQueryObject): Promise<User[]> {
-    return this.userRepository.findByCondition(queryObject);
+  async getAllUsers(queryObject: IQueryObject): Promise<UserWithRole[]> {
+    // Always include role data when fetching all users
+    const queryWithRole = {
+      ...queryObject,
+      join: queryObject.join ? `${queryObject.join},role` : "role",
+    };
+    return this.userRepository.findByCondition(queryWithRole) as Promise<
+      UserWithRole[]
+    >;
   }
 
   async getUserById(id: string): Promise<User | null> {
@@ -48,7 +55,7 @@ export class UserService {
 
     // Verify role exists
     const roleExists = await this.prisma.role.findUnique({
-      where: { id: data.role_id }
+      where: { id: data.role_id },
     });
 
     if (!roleExists) {
@@ -57,10 +64,10 @@ export class UserService {
 
     // Hash password
     const hashedPassword = await hashPassword(data.password);
-    
+
     return this.userRepository.create({
       ...data,
-      password: hashedPassword
+      password: hashedPassword,
     });
   }
 
@@ -88,7 +95,7 @@ export class UserService {
 
   async getDefaultRole(): Promise<string> {
     const defaultRole = await this.prisma.role.findFirst({
-      where: { name: "USER" }
+      where: { name: "USER" },
     });
 
     if (!defaultRole) {

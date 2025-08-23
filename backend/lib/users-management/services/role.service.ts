@@ -18,19 +18,25 @@ export class RoleService {
     return this.roleRepository.findByCondition(queryObject);
   }
 
-  async getRoleById(id: number): Promise<Role | null> {
+  async getRoleById(id: string): Promise<Role | null> {
     return this.roleRepository.findById(id);
   }
 
   async createRole(data: Partial<Role>): Promise<Role> {
-    return this.roleRepository.create(data);
+    // Filter out fields that don't exist in the Prisma schema
+    const { description, permissions, createdAt, updatedAt, ...roleData } =
+      data as any;
+    return this.roleRepository.create(roleData);
   }
 
-  async updateRole(id: number, data: Partial<Role>): Promise<Role> {
-    return this.roleRepository.update(id, data);
+  async updateRole(id: string, data: Partial<Role>): Promise<Role> {
+    // Filter out fields that don't exist in the Prisma schema
+    const { description, permissions, createdAt, updatedAt, ...roleData } =
+      data as any;
+    return this.roleRepository.update(id, roleData);
   }
 
-  async duplicateRole(roleId: number) {
+  async duplicateRole(roleId: string) {
     const role = await this.roleRepository.findOneByCondition({
       filter: `id||$eq||${roleId}`,
     });
@@ -42,8 +48,8 @@ export class RoleService {
     }
   }
 
-  async deleteRole(id: number): Promise<Role> {
-    return this.roleRepository.softDelete(id);
+  async deleteRole(id: string): Promise<Role> {
+    return this.roleRepository.delete(id);
   }
 
   async countRoles(where: any = {}): Promise<number> {

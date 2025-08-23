@@ -33,9 +33,8 @@ export interface CreateUserInput {
   username: string;
   email: string;
   password: string;
-  role_id: string;  // Keep required in the DB input
+  role_id: string; // Keep required in the DB input
 }
-
 
 // For UPDATE operations
 export type UpdateUserInput = Partial<CreateUserInput> & {
@@ -43,7 +42,7 @@ export type UpdateUserInput = Partial<CreateUserInput> & {
   newPassword?: string;
 };
 export interface UserWithRole extends Omit<User, "role"> {
-  role?: Role | null;
+  role: Role; // Make role required when included
 }
 // For API responses
 export interface UserResponse extends Omit<User, "password"> {

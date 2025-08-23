@@ -12,12 +12,18 @@ export class ArticleService {
     if (!data.collisage) {
       throw new Error("Collisage is required");
     }
+    if (!data.type) {
+      throw new Error("Article type is required");
+    }
+    if (data.type !== "catering" && data.type !== "sonodis") {
+      throw new Error("Article type must be either 'catering' or 'sonodis'");
+    }
     if (data.price && Number(data.price) <= 0) {
       throw new Error("Price must be positive");
     }
-    
+
     const categoryExists = await this.prisma.category.findUnique({
-      where: { id: data.category_id }
+      where: { id: data.category_id },
     });
     if (!categoryExists) {
       throw new Error("Category not found");
@@ -37,18 +43,33 @@ export class ArticleService {
     if (data.price && Number(data.price) <= 0) {
       throw new Error("Price must be positive");
     }
-    return await this.articleRepository.update(id, data, { includeCategory: true });
+    return await this.articleRepository.update(id, data, {
+      includeCategory: true,
+    });
   }
 
   async deleteArticle(id: string): Promise<Article> {
     return await this.articleRepository.delete(id, { includeCategory: true });
   }
 
-  async getArticleByCommandeCategory(categoryId: string): Promise<Article | null> {
-    return await this.articleRepository.findByCommandeCategory(categoryId, { includeCategory: true });
+  async getArticleByCommandeCategory(
+    categoryId: string
+  ): Promise<Article | null> {
+    return await this.articleRepository.findByCommandeCategory(categoryId, {
+      includeCategory: true,
+    });
   }
 
   async getAllArticles(queryObject: any = {}): Promise<Article[]> {
-    return await this.articleRepository.findByCondition(queryObject, { includeCategory: true });
+    return await this.articleRepository.findByCondition(queryObject, {
+      includeCategory: true,
+    });
+  }
+
+  async getArticlesByCategory(categoryId: string): Promise<Article[]> {
+    return await this.articleRepository.findByCondition(
+      { where: { category_id: categoryId } },
+      { includeCategory: true }
+    );
   }
 }

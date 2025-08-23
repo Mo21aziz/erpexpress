@@ -5,6 +5,8 @@ import { CorsOptions } from "cors";
 import connect from "./api/auth/connect";
 import categoryRouter from "./api/category/cat.management";
 import articleRouter from "./api/category/article.management";
+import orderRouter from "./api/orders/order.management";
+import bonDeCommandeRouter from "./api/bon-de-commande.management";
 
 let userRouter: any;
 let roleRouter: any;
@@ -145,6 +147,8 @@ app.post("/api/debug/setup", async (req: Request, res: Response) => {
 app.use("/api/auth", connect);
 app.use("/api/category", categoryRouter);
 app.use("/api/articles", articleRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/bon-de-commande", bonDeCommandeRouter);
 
 const isExpressRouter = (router: any) =>
   router &&

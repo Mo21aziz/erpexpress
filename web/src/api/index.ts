@@ -1,5 +1,3 @@
-import { auth } from "./auth";
-
-export const api = {
-  auth,
-};
+export { auth } from "./auth";
+export { users } from "./users";
+export { roles } from "./roles";

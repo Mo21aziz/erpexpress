@@ -66,21 +66,33 @@ export class AuthService {
       throw new Error("User not found");
     }
 
+    console.log("User with role:", userWithRole);
+    console.log("User role:", userWithRole.role);
+
     const { accessToken, refreshToken } = await this.generateTokens(
       userWithRole
     );
     await this.saveRefreshToken(user.id, refreshToken);
 
-    return {
+    const response = {
       user: {
         id: user.id,
         email: user.email,
         username: user.username,
         role_id: user.role_id,
+        role: userWithRole.role
+          ? {
+              id: userWithRole.role.id,
+              name: userWithRole.role.name,
+            }
+          : undefined,
       },
       accessToken,
       refreshToken,
     };
+
+    console.log("Auth response:", response);
+    return response;
   }
 
   async register(payload: RegisterPayload): Promise<User> {

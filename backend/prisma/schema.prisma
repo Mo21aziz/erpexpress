@@ -8,13 +8,17 @@ datasource db {
 }
 
 model Article {
-  id          String    @id @default(uuid())
-  name        String
-  description String
-  price       Decimal?   @db.Decimal(10, 2)
-  collisage   String
-  category_id String
-  category    Category  @relation(fields: [category_id], references: [id])
+  id                  String    @id @default(uuid())
+  name                String
+  description         String
+  price               Decimal?  @db.Decimal(10, 2)
+  collisage           String
+  type                String    @default("catering") // "catering" or "sonodis"
+  quantite_a_stocker  Int       @default(0)
+  quantite_a_demander Int       @default(0)
+  category_id         String
+  category            Category  @relation(fields: [category_id], references: [id])
+  bon_de_commande_categories BonDeCommandeCategory[]
 }
 
 model Category {
@@ -29,13 +33,19 @@ model BonDeCommandeCategory {
   id               String         @id @default(uuid())
   category_id      String
   category         Category       @relation(fields: [category_id], references: [id])
+  article_id       String?
+  article          Article?       @relation(fields: [article_id], references: [id])
   bon_de_commande_id String
   bon_de_commande  BonDeCommande  @relation(fields: [bon_de_commande_id], references: [id])
+  quantite_a_stocker Int          @default(0)
+  quantite_a_demander Int         @default(0)
 }
 
 model BonDeCommande {
   id                  String                    @id @default(uuid())
+  code                String                    @unique
   created_at          DateTime                 @default(now())
+  target_date         DateTime                 @default(now()) // Date for which the bon de commande is created
   description         String
   status              String
   employee_id         String
@@ -57,7 +67,7 @@ model User {
   password     String
   role_id      String
   role         Role      @relation(fields: [role_id], references: [id])
-  employee     Employee?
+  employee     Employee?  
   admin        Admin?
   refreshToken String? 
 }

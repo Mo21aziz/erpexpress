@@ -13,10 +13,14 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
+  User,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Button } from "../../ui/button";
+import { Link, useNavigate } from "react-router-dom";
+import { isAdmin } from "../../../utils/roleUtils";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -39,8 +43,8 @@ const SidebarItem = ({
   onClick,
 }: SidebarItemProps) => {
   return (
-    <a
-      href={href}
+    <Link
+      to={href}
       onClick={onClick}
       className={cn(
         "flex items-center p-3 rounded-lg",
@@ -52,15 +56,26 @@ const SidebarItem = ({
     >
       <span className="text-green-600">{icon}</span>
       <span className="font-medium">{label}</span>
-    </a>
+    </Link>
   );
 };
 
 export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
-  const [deliveryOpen, setDeliveryOpen] = useState(false);
-  const { logout } = useAuth();
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [usersOpen, setusersopen] = useState(false);
+  const { logout, user } = useAuth();
 
-  const toggleDeliveryMenu = () => setDeliveryOpen(!deliveryOpen);
+  // Check if user is admin
+  const userIsAdmin = user && user.role ? isAdmin(user.role.name) : false;
+
+  // Debug logging
+  console.log("User:", user);
+  console.log("User role:", user?.role);
+  console.log("User role name:", user?.role?.name);
+  console.log("Is admin:", userIsAdmin);
+
+  const toggleCommandMenu = () => setCommandOpen(!commandOpen);
+  const toggleUsersMenu = () => setusersopen(!usersOpen);
 
   const handleLogout = () => {
     logout();
@@ -74,13 +89,15 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
         "border-r-2 border-green-200",
         "flex flex-col space-y-6 p-4",
         "transition-all duration-300 ease-in-out",
-        "z-10 shadow-lg",
+        "z-50 shadow-lg",
         // Desktop: always visible, width changes
-        "hidden md:flex",
+        "flex",
         isOpen ? "w-64" : "w-20",
         // Mobile: only visible when open, full width
-        "md:relative"
+        "md:relative",
+        "white" // Debug color
       )}
+      style={{ minHeight: "100vh" }}
     >
       {/* Desktop toggle button */}
       <button
@@ -106,15 +123,9 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
         <>
           <SidebarHeader />
           <div className="flex-1 space-y-3 mt-6">
-            <SidebarItem
-              icon={<FileText className="h-5 w-5" />}
-              label="Bon de commande"
-              href="/bon-de-commande"
-            />
-
             <div className="space-y-2">
               <div
-                onClick={toggleDeliveryMenu}
+                onClick={toggleCommandMenu}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-lg cursor-pointer",
                   "hover:bg-green-100/80 text-black hover:text-green-800",
@@ -122,17 +133,17 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 )}
               >
                 <div className="flex items-center space-x-3">
-                  <Truck className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">Bon de livraison</span>
+                  <FileText className="h-5 w-5 text-green-600" />
+                  <span className="font-medium">Bon de commande</span>
                 </div>
-                {deliveryOpen ? (
+                {commandOpen ? (
                   <ChevronDown className="h-4 w-4 text-green-600" />
                 ) : (
                   <ChevronRight className="h-4 w-4 text-green-600" />
                 )}
               </div>
 
-              {deliveryOpen && (
+              {commandOpen && (
                 <div className="pl-8 space-y-2 bg-green-50/50 rounded-lg p-2 border-l-2 border-green-200">
                   <SidebarItem
                     icon={<Settings className="h-4 w-4" />}
@@ -148,51 +159,116 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               )}
             </div>
 
-            <SidebarItem
-              icon={<Users className="h-5 w-5" />}
-              label="User Management"
-              href="/user-management"
-            />
+            {userIsAdmin && (
+              <SidebarItem
+                icon={<Truck className="h-5 w-5" />}
+                label="Bon de livraison"
+                href="/coming-soon"
+              />
+            )}
+
+            {userIsAdmin && (
+              <div className="space-y-2">
+                <div
+                  onClick={toggleUsersMenu}
+                  className={cn(
+                    "flex items-center justify-between p-3 rounded-lg cursor-pointer",
+                    "hover:bg-green-100/80 text-black hover:text-green-800",
+                    "select-none border border-transparent hover:border-green-200 transition-all duration-200"
+                  )}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-5 w-5 text-green-600" />
+                    <span className="font-medium">User Management</span>
+                  </div>
+                  {usersOpen ? (
+                    <ChevronDown className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-green-600" />
+                  )}
+                </div>
+
+                {usersOpen && (
+                  <div className="pl-8 space-y-2 bg-green-50/50 rounded-lg p-2 border-l-2 border-green-200">
+                    <SidebarItem
+                      icon={<User className="h-4 w-4" />}
+                      label="Utilisateur"
+                      href="/user-management/users"
+                    />
+                    <SidebarItem
+                      icon={<Shield className="h-4 w-4" />}
+                      label="Role"
+                      href="/user-management/roles"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </>
       ) : (
         <div className="flex-1 flex flex-col items-center pt-12 space-y-4">
-          <a
-            href="/bon-de-commande"
+          <button
+            onClick={toggleCommandMenu}
             className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+            title="Bon de commande"
           >
             <FileText className="h-5 w-5" />
-          </a>
-          <button
-            onClick={toggleDeliveryMenu}
-            className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-          >
-            <Truck className="h-5 w-5" />
           </button>
-          {deliveryOpen && (
+          {commandOpen && (
             <div className="flex flex-col items-center space-y-2">
-              <a
-                href="/affectation-ressources"
+              <Link
+                to="/affectation-ressources"
                 className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
                 title="Affectation des ressources"
               >
                 <Settings className="h-4 w-4" />
-              </a>
-              <a
-                href="/listes-bonnes-commande"
+              </Link>
+              <Link
+                to="/listes-bonnes-commande"
                 className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
                 title="Listes des bonnes de commande"
               >
                 <List className="h-4 w-4" />
-              </a>
+              </Link>
             </div>
           )}
-          <a
-            href="/user-management"
-            className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-          >
-            <Users className="h-5 w-5" />
-          </a>
+          {userIsAdmin && (
+            <Link
+              to="/coming-soon"
+              className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+              title="Bon de livraison"
+            >
+              <Truck className="h-5 w-5" />
+            </Link>
+          )}
+          {userIsAdmin && (
+            <button
+              onClick={toggleUsersMenu}
+              className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+              title="User Management"
+            >
+              <Users className="h-5 w-5" />
+            </button>
+          )}
+          {userIsAdmin && usersOpen && (
+            <div className="flex flex-col items-center space-y-2">
+              <Link
+                to="/user-management/users"
+                className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                title="Utilisateur"
+              >
+                <User className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/user-management/roles"
+                className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                title="Role"
+              >
+                <Shield className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
