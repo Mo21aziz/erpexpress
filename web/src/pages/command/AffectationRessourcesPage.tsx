@@ -10,6 +10,8 @@ import { articles as articlesApi } from "@/api/articles";
 import { useToast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessAdminPages } from "@/utils/roleUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +45,9 @@ export function AffectationRessourcesPage() {
     null
   );
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canManageCategories =
+    user && user.role ? canAccessAdminPages(user.role.name) : false;
 
   // Get current date
   const currentDate = new Date().toLocaleDateString("fr-FR", {
@@ -344,7 +349,9 @@ export function AffectationRessourcesPage() {
           />
         ))}
 
-        <AddCategoryButton onClick={handleAddCategory} />
+        {canManageCategories && (
+          <AddCategoryButton onClick={handleAddCategory} />
+        )}
       </div>
 
       <div className="bg-gradient-to-r from-green-50 to-red-50 p-6 rounded-lg border border-green-200">

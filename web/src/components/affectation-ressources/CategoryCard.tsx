@@ -10,6 +10,8 @@ import { Edit, Trash2, Package, FileText } from "lucide-react";
 import { bonDeCommandeApi } from "@/api/bon-de-commande";
 import { useToast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessAdminPages } from "@/utils/roleUtils";
 
 interface CategoryCardProps {
   id: string;
@@ -41,6 +43,9 @@ export function CategoryCard({
   const utilizationRate =
     resourceCount > 0 ? Math.round((assignedCount / resourceCount) * 100) : 0;
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canManageCategories =
+    user && user.role ? canAccessAdminPages(user.role.name) : false;
 
   const handleCreateBonDeCommande = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -117,34 +122,38 @@ export function CategoryCard({
             >
               <FileText className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(id);
-              }}
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete({
-                  id,
-                  name,
-                  description,
-                  resourceCount,
-                  assignedCount,
-                });
-              }}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canManageCategories && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(id);
+                  }}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete({
+                      id,
+                      name,
+                      description,
+                      resourceCount,
+                      assignedCount,
+                    });
+                  }}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <CardDescription>{description}</CardDescription>

@@ -8,6 +8,8 @@ import { articles as articlesApi } from "@/api/articles";
 import { bonDeCommandeApi } from "@/api/bon-de-commande";
 import { useToast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessAdminPages } from "@/utils/roleUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +44,9 @@ export function CategoryArticlesModal({
     Record<string, { quantite_a_stocker: number; quantite_a_demander: number }>
   >({});
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canManageArticles =
+    user && user.role ? canAccessAdminPages(user.role.name) : false;
 
   const fetchLastBonDeCommandeValues = async () => {
     if (!category) return;
@@ -347,15 +352,17 @@ export function CategoryArticlesModal({
               <Check className="h-4 w-4 mr-2" />
               Valider
             </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleAddArticle}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Article
-            </Button>
+            {canManageArticles && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleAddArticle}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Article
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

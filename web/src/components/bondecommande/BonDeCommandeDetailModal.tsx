@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  AlertCircle,
+  Settings,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { BonDeCommande } from "@/api/bon-de-commande";
@@ -21,6 +23,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { bonDeCommandeApi } from "@/api/bon-de-commande";
+import { categories as categoriesApi } from "@/api/categoty";
+import { articles as articlesApi } from "@/api/articles";
+import { validateBonDeCommandeCompleteness } from "@/utils/pdfExport";
 
 interface BonDeCommandeDetailModalProps {
   isOpen: boolean;
@@ -113,7 +118,7 @@ const WarningCard: React.FC<{
 
           <div className="flex justify-end space-x-2 pt-2">
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={onClose}
               className="border-gray-300 text-gray-700 hover:bg-gray-50"
             >
@@ -127,6 +132,111 @@ const WarningCard: React.FC<{
             </Button>
           </div>
         </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Missing Categories/Articles Warning Card Component
+const MissingItemsWarningCard: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onGoToAffectation: () => void;
+  bonDeCommande: BonDeCommande;
+  missingCategories: any[];
+  missingArticles: any[];
+}> = ({
+  isOpen,
+  onClose,
+  onGoToAffectation,
+  bonDeCommande,
+  missingCategories,
+  missingArticles,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-lg flex flex-col h-[80vh]">
+        {/* Fixed Header */}
+        <CardHeader className="flex flex-row items-center space-y-0 pb-2 flex-shrink-0">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            <CardTitle className="text-lg text-red-800">
+              Attention - Catégories et Articles Manquants
+            </CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="ml-auto text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+
+        {/* Scrollable Body */}
+        <CardContent className="flex-1 overflow-y-auto space-y-4 px-6">
+          <p className="text-sm text-gray-600">
+            Le bon de commande <strong>{bonDeCommande.code}</strong> ne contient
+            pas toutes les catégories et articles de la base de données.
+          </p>
+
+          {missingCategories.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <h4 className="font-medium text-red-800 mb-2">
+                Catégories manquantes ({missingCategories.length}):
+              </h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                {missingCategories.map((category) => (
+                  <li key={category.id} className="flex items-center space-x-2">
+                    <span>•</span>
+                    <span className="font-medium">{category.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {missingArticles.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <h4 className="font-medium text-red-800 mb-2">
+                Articles manquants ({missingArticles.length}):
+              </h4>
+              <ul className="text-sm text-red-700 space-y-1">
+                {missingArticles.map((article) => (
+                  <li key={article.id} className="flex items-center space-x-2">
+                    <span>•</span>
+                    <span className="font-medium">{article.name}</span>
+                    <span className="text-red-600">
+                      ({article.category?.name})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+
+        {/* Fixed Footer */}
+        <div className="p-6 pt-0 flex justify-end space-x-2 flex-shrink-0">
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            Annuler
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={onGoToAffectation}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Aller à Affectation des Ressources
+          </Button>
+        </div>
       </Card>
     </div>
   );
@@ -149,6 +259,26 @@ export const BonDeCommandeDetailModal: React.FC<
     bonDeCommande: null,
     newStatus: "",
   });
+
+  // State for missing categories/articles warning
+  const [missingItemsWarning, setMissingItemsWarning] = useState<{
+    isOpen: boolean;
+    bonDeCommande: BonDeCommande | null;
+    newStatus: string;
+    missingCategories: any[];
+    missingArticles: any[];
+  }>({
+    isOpen: false,
+    bonDeCommande: null,
+    newStatus: "",
+    missingCategories: [],
+    missingArticles: [],
+  });
+
+  // State for all categories and articles
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [allArticles, setAllArticles] = useState<any[]>([]);
+
   const { toast } = useToast();
 
   // Initialize edited quantities when bon de commande changes
@@ -170,6 +300,23 @@ export const BonDeCommandeDetailModal: React.FC<
     }
   }, [bonDeCommande]);
 
+  // Fetch all categories and articles for validation
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [categoriesData, articlesData] = await Promise.all([
+          categoriesApi.getCategories(),
+          articlesApi.getArticles(),
+        ]);
+        setAllCategories(categoriesData);
+        setAllArticles(articlesData);
+      } catch (error) {
+        console.error("Failed to fetch validation data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const handleQuantityChange = (
     entryId: string,
     field: "stock" | "demand",
@@ -188,17 +335,39 @@ export const BonDeCommandeDetailModal: React.FC<
     bonDeCommande: BonDeCommande,
     newStatus: string
   ) => {
-    // If trying to confirm and there are null values, show warning
-    if (newStatus === "confirmer" && hasNullValues(bonDeCommande)) {
-      setWarningCard({
-        isOpen: true,
+    // If trying to confirm, check for missing items first
+    if (newStatus === "confirmer") {
+      const validation = validateBonDeCommandeCompleteness(
         bonDeCommande,
-        newStatus,
-      });
-    } else {
-      // Direct status change for non-confirmation or no null values
-      onStatusChange?.(bonDeCommande, newStatus);
+        allCategories,
+        allArticles
+      );
+
+      if (validation.hasMissingItems) {
+        // Show missing items warning first
+        setMissingItemsWarning({
+          isOpen: true,
+          bonDeCommande,
+          newStatus,
+          missingCategories: validation.missingCategories,
+          missingArticles: validation.missingArticles,
+        });
+        return;
+      }
+
+      // If no missing items but there are null values, show null values warning
+      if (hasNullValues(bonDeCommande)) {
+        setWarningCard({
+          isOpen: true,
+          bonDeCommande,
+          newStatus,
+        });
+        return;
+      }
     }
+
+    // Direct status change for non-confirmation or no issues
+    onStatusChange?.(bonDeCommande, newStatus);
   };
 
   const handleConfirmWithWarning = () => {
@@ -210,6 +379,21 @@ export const BonDeCommandeDetailModal: React.FC<
 
   const handleCloseWarning = () => {
     setWarningCard({ isOpen: false, bonDeCommande: null, newStatus: "" });
+  };
+
+  const handleCloseMissingItemsWarning = () => {
+    setMissingItemsWarning({
+      isOpen: false,
+      bonDeCommande: null,
+      newStatus: "",
+      missingCategories: [],
+      missingArticles: [],
+    });
+  };
+
+  const handleGoToAffectation = () => {
+    // Navigate to affectation des ressources page
+    window.location.href = "/affectation-ressources";
   };
 
   const handleSave = async () => {
@@ -315,7 +499,7 @@ export const BonDeCommandeDetailModal: React.FC<
             <div className="flex items-center space-x-2">
               {onStatusChange && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => {
                     const newStatus =
@@ -347,7 +531,7 @@ export const BonDeCommandeDetailModal: React.FC<
               )}
               {!isEditing ? (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsEditing(true)}
                   className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
@@ -359,7 +543,7 @@ export const BonDeCommandeDetailModal: React.FC<
               ) : (
                 <>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={handleSave}
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
@@ -369,7 +553,7 @@ export const BonDeCommandeDetailModal: React.FC<
                     {loading ? "Sauvegarde..." : "Sauvegarder"}
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={handleCancel}
                     className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
@@ -612,12 +796,22 @@ export const BonDeCommandeDetailModal: React.FC<
         </div>
       </div>
 
-      {/* Warning Card */}
+      {/* Warning Card for null/zero values */}
       <WarningCard
         isOpen={warningCard.isOpen}
         onClose={handleCloseWarning}
         onConfirm={handleConfirmWithWarning}
         bonDeCommande={warningCard.bonDeCommande!}
+      />
+
+      {/* Missing Items Warning Card */}
+      <MissingItemsWarningCard
+        isOpen={missingItemsWarning.isOpen}
+        onClose={handleCloseMissingItemsWarning}
+        onGoToAffectation={handleGoToAffectation}
+        bonDeCommande={missingItemsWarning.bonDeCommande!}
+        missingCategories={missingItemsWarning.missingCategories}
+        missingArticles={missingItemsWarning.missingArticles}
       />
     </>
   );

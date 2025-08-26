@@ -15,6 +15,8 @@ import { useState, useEffect } from "react";
 import { bonDeCommandeApi } from "@/api/bon-de-commande";
 import { useToast } from "@/components/ui/use-toast";
 import { AxiosError } from "axios";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessAdminPages } from "@/utils/roleUtils";
 
 interface ArticleCardProps {
   article: Article;
@@ -51,6 +53,9 @@ export function ArticleCard({
   const [stockQuantity, setStockQuantity] = useState<number>(initialStock);
   const [demandQuantity, setDemandQuantity] = useState<number>(initialDemand);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canManageArticles =
+    user && user.role ? canAccessAdminPages(user.role.name) : false;
 
   // Update state when props change
   useEffect(() => {
@@ -146,28 +151,32 @@ export function ArticleCard({
             >
               <FileText className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(article);
-              }}
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(article);
-              }}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canManageArticles && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(article);
+                  }}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(article);
+                  }}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -187,7 +196,7 @@ export function ArticleCard({
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Package2 className="h-4 w-4 text-orange-600" />
-            <span className="text-sm text-gray-600">Quantité a stocker:</span>
+            <span className="text-sm text-gray-600"> stocke:</span>
             <Input
               type="number"
               min="0"
