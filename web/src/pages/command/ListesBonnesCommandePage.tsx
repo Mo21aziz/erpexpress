@@ -6,8 +6,9 @@ import { AxiosError } from "axios";
 import { BonDeCommandeTable } from "../../components/bondecommande/BonDeCommandeTable";
 import { BonDeCommandeDetailModal } from "../../components/bondecommande/BonDeCommandeDetailModal";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown, Clock } from "lucide-react";
 import { exportBonDeCommandeToPDF } from "../../utils/pdfExport";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function ListesBonnesCommandePage() {
   const [bonDeCommandes, setBonDeCommandes] = useState<BonDeCommande[]>([]);
@@ -17,6 +18,7 @@ export function ListesBonnesCommandePage() {
     useState<BonDeCommande | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchBonDeCommandes = async () => {
     setLoading(true);
@@ -109,6 +111,28 @@ export function ListesBonnesCommandePage() {
       <p className="text-gray-600 mb-4">
         Consultez et gérez toutes les bonnes de commande
       </p>
+
+      {/* 48-hour notice for employees and Gerant */}
+      {user &&
+        user.role &&
+        user.role.name !== "Admin" &&
+        user.role.name !== "Responsible" && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 text-blue-600 mr-3" />
+              <div>
+                <h3 className="text-sm font-medium text-blue-800">
+                  Limitation de visibilité
+                </h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  {user.role.name === "Gerant"
+                    ? "En tant que Gérant, vous ne pouvez voir que les bonnes de commande de vos employés assignés des dernières 48 heures."
+                    : "En tant qu'employé, vous ne pouvez voir que les bonnes de commande des dernières 48 heures."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
       {error && (
         <Card className="border-red-200 bg-red-50">

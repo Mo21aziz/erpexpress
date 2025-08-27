@@ -35,6 +35,7 @@ export function CategoryArticlesModal({
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [articleFormOpen, setArticleFormOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -207,74 +208,41 @@ export function CategoryArticlesModal({
   };
 
   const handleValidate = async () => {
+    if (isSubmitting) return; // Prevent multiple simultaneous requests
+    if (!category) return; // Early return if category is null
+
+    setIsSubmitting(true);
+    setError(null);
+
     try {
-      // Get tomorrow's date in local timezone
-      const today = new Date();
-      const tomorrow = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate() + 1
+      const articlesToUpdate = articles.filter(
+        (article) =>
+          (article.quantite_a_stocker !== null &&
+            article.quantite_a_stocker !== undefined &&
+            article.quantite_a_stocker >= 0) ||
+          (article.quantite_a_demander !== null &&
+            article.quantite_a_demander !== undefined &&
+            article.quantite_a_demander >= 0)
       );
-      const tomorrowFormatted =
-        tomorrow.getFullYear() +
-        "-" +
-        String(tomorrow.getMonth() + 1).padStart(2, "0") +
-        "-" +
-        String(tomorrow.getDate()).padStart(2, "0");
-
-      // Filter articles that have changed from last saved values or have quantities
-      const articlesToUpdate = articles.filter((article) => {
-        const stock = Number(article.quantite_a_stocker ?? 0);
-        const demande = Number(article.quantite_a_demander ?? 0);
-
-        // Check if quantities have changed from last saved values
-        const lastValues = lastBonDeCommandeValues[article.id];
-        const hasChanged = lastValues
-          ? stock !== lastValues.quantite_a_stocker ||
-            demande !== lastValues.quantite_a_demander
-          : true; // Always update if no last values
-
-        // Debug logging for change detection
-        console.log(`Article ${article.name} change check:`, {
-          currentStock: stock,
-          currentDemand: demande,
-          lastValues,
-          hasChanged,
-        });
-
-        return hasChanged;
-      });
 
       if (articlesToUpdate.length === 0) {
         toast({
-          title: "ℹ️ Information",
+          title: "⚠️ Attention",
           description:
-            "Aucune modification détectée. Les quantités sont déjà à jour.",
-        });
-        return;
-      }
-
-      if (!category) {
-        toast({
-          title: "❌ Erreur",
-          description: "Catégorie non trouvée.",
+            "Aucun article avec des quantités définies à mettre à jour.",
           variant: "destructive",
         });
         return;
       }
 
-      // Log individual article quantities for debugging
-      console.log(
-        "Individual article quantities:",
-        articlesToUpdate.map((article) => ({
-          article_name: article.name,
-          article_id: article.id,
-          stock: Number(article.quantite_a_stocker) || 0,
-          demand: Number(article.quantite_a_demander) || 0,
-        }))
-      );
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowFormatted = tomorrow.toLocaleDateString("fr-FR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
-      // Send individual requests for each article
       const promises = articlesToUpdate.map(async (article) => {
         const stock = Number(article.quantite_a_stocker ?? 0);
         const demand = Number(article.quantite_a_demander ?? 0);
@@ -310,11 +278,15 @@ export function CategoryArticlesModal({
           : err instanceof Error
           ? err.message
           : "Failed to create/update bon de commande";
+
+      setError(message);
       toast({
         title: "❌ Erreur",
         description: message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -342,10 +314,19 @@ export function CategoryArticlesModal({
               size="sm"
               onClick={handleValidate}
               className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={articles.length === 0}
+              disabled={articles.length === 0 || isSubmitting}
             >
-              <Check className="h-4 w-4 mr-2" />
-              Valider
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Validation...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Valider
+                </>
+              )}
             </Button>
             {canManageArticles && (
               <Button

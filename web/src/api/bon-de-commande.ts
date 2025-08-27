@@ -63,18 +63,37 @@ export const bonDeCommandeApi = {
   createBonDeCommande: async (
     data: CreateBonDeCommandeData
   ): Promise<BonDeCommande> => {
-    try {
-      const response = await api.post("/api/bon-de-commande", data);
-      return response.data;
-    } catch (error) {
-      console.error("Failed to create bon de commande:", error);
-      if (error instanceof AxiosError) {
-        throw new Error(
-          error.response?.data?.error || "Failed to create bon de commande"
+    const maxRetries = 3;
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await api.post("/api/bon-de-commande", data);
+        return response.data;
+      } catch (error) {
+        lastError = error;
+        console.error(
+          `Failed to create bon de commande (attempt ${attempt}/${maxRetries}):`,
+          error
         );
+
+        // If it's the last attempt, throw the error
+        if (attempt === maxRetries) {
+          if (error instanceof AxiosError) {
+            throw new Error(
+              error.response?.data?.error || "Failed to create bon de commande"
+            );
+          }
+          throw new Error("Failed to create bon de commande");
+        }
+
+        // Wait a bit before retrying (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
       }
-      throw new Error("Failed to create bon de commande");
     }
+
+    // This should never be reached, but just in case
+    throw lastError;
   },
 
   // Get all bon de commande
@@ -131,7 +150,9 @@ export const bonDeCommandeApi = {
   // Update bon de commande status
   updateStatus: async (id: string, status: string): Promise<BonDeCommande> => {
     try {
-      const response = await api.put(`/api/bon-de-commande/${id}/status`, { status });
+      const response = await api.put(`/api/bon-de-commande/${id}/status`, {
+        status,
+      });
       return response.data;
     } catch (error) {
       console.error("Failed to update bon de commande status:", error);
@@ -145,12 +166,18 @@ export const bonDeCommandeApi = {
   },
 
   // Update bon de commande category
-  updateBonDeCommandeCategory: async (categoryId: string, data: {
-    quantite_a_stocker?: number;
-    quantite_a_demander?: number;
-  }): Promise<any> => {
+  updateBonDeCommandeCategory: async (
+    categoryId: string,
+    data: {
+      quantite_a_stocker?: number;
+      quantite_a_demander?: number;
+    }
+  ): Promise<any> => {
     try {
-      const response = await api.put(`/api/bon-de-commande/category/${categoryId}`, data);
+      const response = await api.put(
+        `/api/bon-de-commande/category/${categoryId}`,
+        data
+      );
       return response.data;
     } catch (error) {
       console.error("Failed to update bon de commande category:", error);

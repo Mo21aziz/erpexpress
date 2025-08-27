@@ -230,15 +230,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </Link>
             </div>
           )}
-          {userIsAdmin && (
-            <Link
-              to="/coming-soon"
-              className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-              title="Bon de livraison"
-            >
-              <Truck className="h-5 w-5" />
-            </Link>
-          )}
+          
           {userIsAdmin && (
             <button
               onClick={toggleUsersMenu}

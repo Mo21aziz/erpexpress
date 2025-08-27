@@ -143,9 +143,10 @@ export class BonDeCommandeService {
     );
 
     // If user is Gerant, show bon de commande from assigned employees
+    // and limit to last 48 hours
     if (userRole === "Gerant" && userId) {
       console.log(
-        `[BonDeCommandeService] User is Gerant, filtering by assigned employees`
+        `[BonDeCommandeService] User is Gerant, filtering by assigned employees and last 48 hours`
       );
 
       // Get the Gerant's assigned employees
@@ -163,10 +164,19 @@ export class BonDeCommandeService {
 
       if (assignedEmployeeIds.length > 0) {
         whereClause.employee_id = { in: assignedEmployeeIds };
+
+        // Add 48-hour time restriction for Gerant
+        const fortyEightHoursAgo = new Date();
+        fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
+
+        whereClause.created_at = {
+          gte: fortyEightHoursAgo,
+        };
+
         console.log(
           `[BonDeCommandeService] Filtering by assigned employee IDs: ${assignedEmployeeIds.join(
             ", "
-          )}`
+          )} and created_at >= ${fortyEightHoursAgo.toISOString()}`
         );
       } else {
         // If no employees assigned, return empty array
@@ -177,6 +187,7 @@ export class BonDeCommandeService {
       }
     }
     // If user is not admin, responsible, or gerant, only show their own bon de commande
+    // and limit to last 48 hours for employees
     else if (
       userRole !== "Admin" &&
       userRole !== "Responsible" &&
@@ -184,7 +195,7 @@ export class BonDeCommandeService {
       userId
     ) {
       console.log(
-        `[BonDeCommandeService] User is not admin/responsible/gerant, filtering by employee_id`
+        `[BonDeCommandeService] User is not admin/responsible/gerant, filtering by employee_id and last 48 hours`
       );
       // Find the employee record for this user
       const employee = await this.prisma.employee.findFirst({
@@ -193,8 +204,19 @@ export class BonDeCommandeService {
 
       if (employee) {
         whereClause.employee_id = employee.id;
+
+        // Add 48-hour time restriction for employees
+        const fortyEightHoursAgo = new Date();
+        fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
+
+        whereClause.created_at = {
+          gte: fortyEightHoursAgo,
+        };
+
         console.log(
-          `[BonDeCommandeService] Found employee record, filtering by employee_id: ${employee.id}`
+          `[BonDeCommandeService] Found employee record, filtering by employee_id: ${
+            employee.id
+          } and created_at >= ${fortyEightHoursAgo.toISOString()}`
         );
       } else {
         console.log(
