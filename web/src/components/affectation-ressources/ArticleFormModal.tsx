@@ -31,12 +31,14 @@ export function ArticleFormModal({
     price: "",
     collisage: "",
     type: "catering",
+    numero: "",
   });
   const [errors, setErrors] = useState({
     name: "",
     price: "",
     collisage: "",
     type: "",
+    numero: "",
     general: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,6 +51,10 @@ export function ArticleFormModal({
         price: initialData.price ? Number(initialData.price).toString() : "",
         collisage: initialData.collisage || "",
         type: initialData.type || "catering",
+        numero:
+          initialData.numero !== undefined && initialData.numero !== null
+            ? String(initialData.numero)
+            : "",
       });
     } else {
       setFormData({
@@ -56,6 +62,7 @@ export function ArticleFormModal({
         price: "",
         collisage: "",
         type: "catering",
+        numero: "",
       });
     }
     setErrors({
@@ -63,6 +70,7 @@ export function ArticleFormModal({
       price: "",
       collisage: "",
       type: "",
+      numero: "",
       general: "",
     });
   }, [initialData, isOpen]);
@@ -73,6 +81,7 @@ export function ArticleFormModal({
       price: "",
       collisage: "",
       type: "",
+      numero: "",
       general: "",
     };
     let valid = true;
@@ -102,6 +111,14 @@ export function ArticleFormModal({
       valid = false;
     }
 
+    if (
+      formData.numero &&
+      (isNaN(Number(formData.numero)) || Number(formData.numero) < 0)
+    ) {
+      newErrors.numero = "Numero must be a positive number";
+      valid = false;
+    }
+
     setErrors(newErrors);
     return valid;
   };
@@ -118,6 +135,7 @@ export function ArticleFormModal({
         price: formData.price ? Number(formData.price) : 0,
         collisage: formData.collisage.trim(),
         type: formData.type,
+        numero: formData.numero ? Number(formData.numero) : undefined,
         category_id: categoryId,
       };
 
@@ -199,6 +217,23 @@ export function ArticleFormModal({
             />
             {errors.name && (
               <p className="text-sm text-red-600">{errors.name}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="numero">Numero</Label>
+            <Input
+              id="numero"
+              type="number"
+              min="0"
+              value={formData.numero}
+              onChange={(e) =>
+                setFormData({ ...formData, numero: e.target.value })
+              }
+              placeholder="e.g., 1"
+            />
+            {errors.numero && (
+              <p className="text-sm text-red-600">{errors.numero}</p>
             )}
           </div>
 

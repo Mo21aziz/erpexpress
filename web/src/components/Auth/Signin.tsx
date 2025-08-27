@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { ChefHat, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { auth } from "../../api/auth";
 import { useAuth } from "../../contexts/AuthContext";
+import { SidebarHeader } from "../common/sidebar/SidebarHeader";
 
 function Logo() {
   return (
@@ -113,8 +114,8 @@ function PasswordInput({
 function SigninHeader() {
   return (
     <CardHeader className="space-y-1 text-center">
-      <Logo />
-      <CardTitle>Di Napoli</CardTitle>
+      <SidebarHeader />
+      
       <CardDescription>Connectez-vous à votre compte</CardDescription>
     </CardHeader>
   );
@@ -197,28 +198,7 @@ function SigninForm() {
             />
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <input
-              id="remember"
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-            />
-            <Label
-              htmlFor="remember"
-              className="text-sm font-normal text-gray-600"
-            >
-              Se souvenir de moi
-            </Label>
-          </div>
-          <Button
-            variant="link"
-            className="px-0 font-normal text-red-600 hover:text-red-700"
-            type="button"
-          >
-            Mot de passe oublié ?
-          </Button>
-        </div>
+        
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Connexion..." : "Se connecter"}
         </Button>

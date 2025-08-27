@@ -32,12 +32,18 @@ router.get("/:id", async (req: Request, res: Response) => {
 // Update Article
 router.put("/:id", async (req: Request, res: Response) => {
   try {
+    console.log("[Article API] Updating article with ID:", req.params.id);
+    console.log("[Article API] Update data:", req.body);
     const article = await container.ArticleService.updateArticle(
       req.params.id,
       req.body
     );
+    console.log("[Article API] Article updated successfully:", article);
     res.status(200).json(article);
   } catch (error: any) {
+    console.error("[Article API] Error updating article:", error);
+    console.error("[Article API] Error message:", error.message);
+    console.error("[Article API] Error stack:", error.stack);
     res.status(400).json({ error: error.message });
   }
 });

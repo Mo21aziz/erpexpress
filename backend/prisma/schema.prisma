@@ -11,6 +11,7 @@ model Article {
   id                  String    @id @default(uuid())
   name                String
   description         String?
+  numero              Int?
   price               Decimal?  @db.Decimal(10, 2)
   collisage           String
   type                String    @default("catering") // "catering" or "sonodis"
@@ -19,6 +20,7 @@ model Article {
   category_id         String
   category            Category  @relation(fields: [category_id], references: [id])
   bon_de_commande_categories BonDeCommandeCategory[]
+  
 }
 
 model Category {

@@ -61,6 +61,7 @@ export const articles = {
     price: number;
     collisage: string;
     type: string;
+    numero?: number;
     category_id: string;
   }): Promise<Article> => {
     try {
@@ -86,6 +87,7 @@ export const articles = {
       price: number;
       collisage: string;
       type: string;
+      numero?: number;
       category_id: string;
       quantite_a_stocker?: number;
       quantite_a_demander?: number;

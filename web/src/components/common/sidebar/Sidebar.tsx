@@ -162,13 +162,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               )}
             </div>
 
-            {userIsAdmin && (
-              <SidebarItem
-                icon={<Truck className="h-5 w-5" />}
-                label="Bon de livraison"
-                href="/coming-soon"
-              />
-            )}
+            
 
             {userIsAdmin && (
               <div className="space-y-2">

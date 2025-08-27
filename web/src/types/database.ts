@@ -34,6 +34,7 @@ export interface Article {
   price: number | null;
   collisage: string;
   type: string; // "catering" or "sonodis"
+  numero?: number;
   quantite_a_stocker: number;
   quantite_a_demander: number;
   category_id: string;

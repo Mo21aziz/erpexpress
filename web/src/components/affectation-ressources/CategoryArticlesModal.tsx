@@ -180,14 +180,9 @@ export function CategoryArticlesModal({
     }
   };
 
-  const handleArticleSubmit = (article: Article) => {
-    if (formMode === "add") {
-      setArticles([...articles, article]);
-    } else {
-      setArticles(
-        articles.map((art) => (art.id === article.id ? article : art))
-      );
-    }
+  const handleArticleSubmit = async (_article: Article) => {
+    // Always refresh from server to reflect numero shifts on other articles
+    await fetchArticles();
   };
 
   const handleQuantityChange = (

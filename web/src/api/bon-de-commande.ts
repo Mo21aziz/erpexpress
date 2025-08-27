@@ -44,6 +44,7 @@ export interface BonDeCommandeCategory {
     name: string;
     description: string;
     type: string; // "catering" or "sonodis"
+    numero?: number;
   };
 }
 

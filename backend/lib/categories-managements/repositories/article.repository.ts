@@ -5,14 +5,16 @@ export class ArticleRepository {
   constructor(private prisma: PrismaClient) {}
 
   private getCategoryInclude(options?: ArticleRepositoryOptions) {
-    return options?.includeCategory ? {
-      category: {
-        select: {
-          id: true,
-          name: true
+    return options?.includeCategory
+      ? {
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         }
-      }
-    } : {};
+      : {};
   }
 
   async create(
@@ -21,7 +23,7 @@ export class ArticleRepository {
   ): Promise<Article> {
     return this.prisma.article.create({
       data,
-      include: this.getCategoryInclude(options)
+      include: this.getCategoryInclude(options),
     });
   }
 
@@ -31,7 +33,7 @@ export class ArticleRepository {
   ): Promise<Article | null> {
     return this.prisma.article.findUnique({
       where: { id },
-      include: this.getCategoryInclude(options)
+      include: this.getCategoryInclude(options),
     });
   }
 
@@ -43,7 +45,7 @@ export class ArticleRepository {
     return this.prisma.article.update({
       where: { id },
       data,
-      include: this.getCategoryInclude(options)
+      include: this.getCategoryInclude(options),
     });
   }
 
@@ -53,7 +55,7 @@ export class ArticleRepository {
   ): Promise<Article> {
     return this.prisma.article.delete({
       where: { id },
-      include: this.getCategoryInclude(options)
+      include: this.getCategoryInclude(options),
     });
   }
 
@@ -63,7 +65,8 @@ export class ArticleRepository {
   ): Promise<Article | null> {
     return this.prisma.article.findFirst({
       where: { category_id: categoryId },
-      include: this.getCategoryInclude(options)
+      include: this.getCategoryInclude(options),
+      orderBy: { numero: "asc" as const },
     });
   }
 
@@ -73,7 +76,8 @@ export class ArticleRepository {
   ): Promise<Article[]> {
     return this.prisma.article.findMany({
       where: queryObject.where || {},
-      include: this.getCategoryInclude(options)
+      include: this.getCategoryInclude(options),
+      orderBy: queryObject.orderBy || { numero: "asc" as const },
     });
   }
 }
