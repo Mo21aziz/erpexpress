@@ -19,8 +19,8 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   async create(data: CreateUserInput): Promise<User> {
-    // Destructure role_id and the rest of the user data
-    const { role_id, ...userData } = data;
+    // Destructure role_id and assigned_employee_ids from the user data
+    const { role_id, assigned_employee_ids, ...userData } = data;
     return this.model.create({
       data: {
         ...userData,
@@ -35,8 +35,8 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
-    // Destructure role_id and the rest of the user data
-    const { role_id, ...userData } = data;
+    // Destructure role_id and assigned_employee_ids from the user data
+    const { role_id, assigned_employee_ids, ...userData } = data;
     return this.model.update({
       where: { id },
       data: {

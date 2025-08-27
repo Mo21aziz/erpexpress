@@ -5,13 +5,43 @@ console.log("User router loaded"); // Debug log
 
 const router = express.Router();
 
-// Get all users
+// Debug middleware to log all requests
+router.use((req, res, next) => {
+  console.log(`User router: ${req.method} ${req.path}`);
+  next();
+});
+
 console.log("Registering route: GET /");
+// Get all users
 router.get("/", async (req: Request, res: Response) => {
   console.log("GET /api/users route hit"); // Debug log
   try {
     const users = await container.UserService.getAllUsers(req.query);
     res.status(200).json(users);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all users (for Gerant assignment)
+console.log("Registering route: GET /employees");
+router.get("/employees", async (req: Request, res: Response) => {
+  try {
+    const employees = await container.UserService.getAllEmployees();
+    res.status(200).json(employees);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Gerant's assigned employees
+console.log("Registering route: GET /gerant/:id/employees");
+router.get("/gerant/:id/employees", async (req: Request, res: Response) => {
+  try {
+    const employees = await container.UserService.getGerantAssignedEmployees(
+      req.params.id
+    );
+    res.status(200).json(employees);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

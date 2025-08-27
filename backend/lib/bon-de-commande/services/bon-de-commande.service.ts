@@ -142,8 +142,47 @@ export class BonDeCommandeService {
       `[BonDeCommandeService] getAllBonDeCommande called with userId: ${userId}, userRole: ${userRole}`
     );
 
+    // If user is Gerant, show bon de commande from assigned employees
+    if (userRole === "Gerant" && userId) {
+      console.log(
+        `[BonDeCommandeService] User is Gerant, filtering by assigned employees`
+      );
+
+      // Get the Gerant's assigned employees
+      const assignedEmployees =
+        await this.prisma.gerantEmployeeAssignment.findMany({
+          where: { gerant_id: userId },
+          include: {
+            employee: true,
+          },
+        });
+
+      const assignedEmployeeIds = assignedEmployees.map(
+        (assignment) => assignment.employee_id
+      );
+
+      if (assignedEmployeeIds.length > 0) {
+        whereClause.employee_id = { in: assignedEmployeeIds };
+        console.log(
+          `[BonDeCommandeService] Filtering by assigned employee IDs: ${assignedEmployeeIds.join(
+            ", "
+          )}`
+        );
+      } else {
+        // If no employees assigned, return empty array
+        console.log(
+          `[BonDeCommandeService] No employees assigned to Gerant, returning empty array`
+        );
+        return [];
+      }
+    }
     // If user is not admin, responsible, or gerant, only show their own bon de commande
-    if (userRole !== "Admin" && userRole !== "Responsible" && userRole !== "Gerant" && userId) {
+    else if (
+      userRole !== "Admin" &&
+      userRole !== "Responsible" &&
+      userRole !== "Gerant" &&
+      userId
+    ) {
       console.log(
         `[BonDeCommandeService] User is not admin/responsible/gerant, filtering by employee_id`
       );
@@ -162,9 +201,9 @@ export class BonDeCommandeService {
           `[BonDeCommandeService] No employee record found for user: ${userId}`
         );
       }
-    } else {
+    } else if (userRole === "Admin" || userRole === "Responsible") {
       console.log(
-        `[BonDeCommandeService] User is admin/responsible/gerant, showing all bon de commande`
+        `[BonDeCommandeService] User is admin/responsible, showing all bon de commande`
       );
     }
 
@@ -293,7 +332,10 @@ export class BonDeCommandeService {
     });
   }
 
-  async updateCategory(id: string, data: { quantite_a_stocker?: number; quantite_a_demander?: number }): Promise<any> {
+  async updateCategory(
+    id: string,
+    data: { quantite_a_stocker?: number; quantite_a_demander?: number }
+  ): Promise<any> {
     return await this.prisma.bonDeCommandeCategory.update({
       where: { id },
       data,

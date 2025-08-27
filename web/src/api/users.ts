@@ -7,6 +7,18 @@ const getUsers = async (): Promise<UserWithRole[]> => {
   return response.data;
 };
 
+// Get all users (for Gerant assignment)
+const getEmployees = async (): Promise<any[]> => {
+  const response = await api.get("/api/users/employees");
+  return response.data;
+};
+
+// Get Gerant's assigned employees
+const getGerantAssignedEmployees = async (gerantId: string): Promise<any[]> => {
+  const response = await api.get(`/api/users/gerant/${gerantId}/employees`);
+  return response.data;
+};
+
 // Get a single user by ID
 const getUser = async (id: string): Promise<User & { role: Role }> => {
   const response = await api.get(`/api/users/${id}`);
@@ -14,7 +26,9 @@ const getUser = async (id: string): Promise<User & { role: Role }> => {
 };
 
 // Create a new user
-const createUser = async (userData: Partial<User>): Promise<User> => {
+const createUser = async (
+  userData: Partial<User> & { assigned_employee_ids?: string[] }
+): Promise<User> => {
   const response = await api.post("/api/users", userData);
   return response.data;
 };
@@ -22,7 +36,7 @@ const createUser = async (userData: Partial<User>): Promise<User> => {
 // Update a user
 const updateUser = async (
   id: string,
-  userData: Partial<User>
+  userData: Partial<User> & { assigned_employee_ids?: string[] }
 ): Promise<User> => {
   const response = await api.put(`/api/users/${id}`, userData);
   return response.data;
@@ -35,6 +49,8 @@ const deleteUser = async (id: string): Promise<void> => {
 
 export const users = {
   getUsers,
+  getEmployees,
+  getGerantAssignedEmployees,
   getUser,
   createUser,
   updateUser,

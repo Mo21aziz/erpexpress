@@ -71,6 +71,7 @@ export function UsersPage() {
     role_id: string;
     password: string;
     confirmPassword: string;
+    assigned_employee_ids?: string[];
   }) => {
     try {
       if (userData.password !== userData.confirmPassword) {
@@ -82,6 +83,7 @@ export function UsersPage() {
         email: userData.email,
         role_id: userData.role_id,
         password: userData.password,
+        assigned_employee_ids: userData.assigned_employee_ids,
       });
 
       setShowAddModal(false);

@@ -60,6 +60,9 @@ model Employee {
   user_id          String           @unique
   user             User             @relation(fields: [user_id], references: [id])
   bons_de_commande BonDeCommande[]
+  
+  // Add relation for Gerant assignments
+  gerant_assignments GerantEmployeeAssignment[]
 }
 
 model User {
@@ -71,7 +74,10 @@ model User {
   role         Role      @relation(fields: [role_id], references: [id])
   employee     Employee?  
   admin        Admin?
-  refreshToken String? 
+  refreshToken String?
+  
+  // Add relation for Gerant assignments
+  gerant_assignments GerantEmployeeAssignment[] @relation("GerantAssignments")
 }
 
 model Role {
@@ -84,4 +90,17 @@ model Admin {
   id      String @id @default(uuid())
   user_id String @unique
   user    User   @relation(fields: [user_id], references: [id])
+}
+
+model GerantEmployeeAssignment {
+  id          String   @id @default(uuid())
+  gerant_id   String   // User ID of the Gerant
+  employee_id String   // Employee ID that is assigned to the Gerant
+  created_at  DateTime @default(now())
+  
+  // Relations
+  gerant      User     @relation("GerantAssignments", fields: [gerant_id], references: [id], onDelete: Cascade)
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  
+  @@unique([gerant_id, employee_id])
 }

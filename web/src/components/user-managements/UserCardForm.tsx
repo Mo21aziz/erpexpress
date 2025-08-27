@@ -5,17 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Role } from "@/types/database";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { users } from "@/api/users";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface UserFormCardProps {
   title?: string;
   onClose: () => void;
-  onSave: (userData: { 
-    username: string; 
-    email: string; 
+  onSave: (userData: {
+    username: string;
+    email: string;
     role_id: string;
     password: string;
     confirmPassword: string;
+    assigned_employee_ids?: string[];
   }) => Promise<void>;
   roles: Role[];
   className?: string;
@@ -25,32 +28,72 @@ interface UserFormCardProps {
     role_id: string;
     password: string;
     confirmPassword: string;
+    assigned_employee_ids?: string[];
   };
   isEditing?: boolean;
 }
 
-export const UserFormCard = ({ 
-  onClose, 
-  onSave, 
-  roles, 
+interface Employee {
+  id: string;
+  username: string;
+  email: string;
+  role: {
+    id: string;
+    name: string;
+  };
+}
+
+export const UserFormCard = ({
+  onClose,
+  onSave,
+  roles,
   className,
   initialData,
-  isEditing = false
+  isEditing = false,
 }: UserFormCardProps) => {
-  const [formData, setFormData] = useState(initialData || {
-    username: "",
-    email: "",
-    role_id: "",
-    password: "",
-    confirmPassword: ""
-  });
+  const [formData, setFormData] = useState(
+    initialData || {
+      username: "",
+      email: "",
+      role_id: "",
+      password: "",
+      confirmPassword: "",
+      assigned_employee_ids: [],
+    }
+  );
 
   const [errors, setErrors] = useState({
     password: "",
-    general: ""
+    general: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+
+  // Fetch employees when component mounts or when role changes to Gerant
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      if (formData.role_id) {
+        const selectedRole = roles.find((role) => role.id === formData.role_id);
+        if (selectedRole?.name === "Gerant") {
+          setLoadingEmployees(true);
+          try {
+            const employeesData = await users.getEmployees();
+            setEmployees(employeesData);
+          } catch (error) {
+            console.error("Failed to fetch employees:", error);
+          } finally {
+            setLoadingEmployees(false);
+          }
+        } else {
+          setEmployees([]);
+        }
+      }
+    };
+
+    fetchEmployees();
+  }, [formData.role_id, roles]);
 
   const validate = () => {
     const newErrors = { password: "", general: "" };
@@ -80,12 +123,24 @@ export const UserFormCard = ({
     } catch (err) {
       setErrors({
         ...errors,
-        general: "Failed to save user. Please try again."
+        general: "Failed to save user. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleEmployeeToggle = (employeeId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      assigned_employee_ids: prev.assigned_employee_ids?.includes(employeeId)
+        ? prev.assigned_employee_ids.filter((id) => id !== employeeId)
+        : [...(prev.assigned_employee_ids || []), employeeId],
+    }));
+  };
+
+  const selectedRole = roles.find((role) => role.id === formData.role_id);
+  const isGerantRole = selectedRole?.name === "Gerant";
 
   return (
     <Card className={cn("w-full max-w-md", className)}>
@@ -114,7 +169,9 @@ export const UserFormCard = ({
             <Input
               id="username"
               value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
               required
             />
           </div>
@@ -125,7 +182,9 @@ export const UserFormCard = ({
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               required
             />
           </div>
@@ -138,7 +197,9 @@ export const UserFormCard = ({
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   required={!isEditing}
                   minLength={8}
                 />
@@ -150,7 +211,12 @@ export const UserFormCard = ({
                   id="confirmPassword"
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
                   required={!isEditing}
                 />
                 {errors.password && (
@@ -165,7 +231,9 @@ export const UserFormCard = ({
             <select
               id="role_id"
               value={formData.role_id}
-              onChange={(e) => setFormData({...formData, role_id: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, role_id: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
@@ -178,12 +246,63 @@ export const UserFormCard = ({
             </select>
           </div>
 
+          {/* Employee Assignment Section for Gerant Role */}
+          {isGerantRole && (
+            <div className="space-y-3 border-t pt-4">
+              <Label className="text-sm font-medium">Assign Employees</Label>
+              <p className="text-xs text-gray-600">
+                Select employees that this Gerant will manage:
+              </p>
+
+              {loadingEmployees ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Loading employees...
+                  </p>
+                </div>
+              ) : employees.length === 0 ? (
+                <p className="text-sm text-gray-500">No employees available</p>
+              ) : (
+                <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-3">
+                  {employees.map((employee) => (
+                    <div
+                      key={employee.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        id={`employee-${employee.id}`}
+                        checked={
+                          formData.assigned_employee_ids?.includes(
+                            employee.id
+                          ) || false
+                        }
+                        onCheckedChange={() =>
+                          handleEmployeeToggle(employee.id)
+                        }
+                      />
+                      <Label
+                        htmlFor={`employee-${employee.id}`}
+                        className="text-sm cursor-pointer flex-1"
+                      >
+                        <div className="font-medium">{employee.username}</div>
+                        <div className="text-xs text-gray-500">
+                          {employee.email}
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="ghost" type="button" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-blue-600 hover:bg-blue-700"
               disabled={isSubmitting}
             >

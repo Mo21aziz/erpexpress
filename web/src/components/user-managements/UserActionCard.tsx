@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Edit, X } from "lucide-react";
 import { User, Role } from "@/types/database";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserFormCard } from "./UserCardForm";
 import {
   AlertDialog,
@@ -24,16 +24,38 @@ interface UserActionsCardProps {
   roles: Role[];
 }
 
-export const UserActionsCard = ({ 
-  user, 
-  onClose, 
-  onUserUpdated, 
-  roles 
+export const UserActionsCard = ({
+  user,
+  onClose,
+  onUserUpdated,
+  roles,
 }: UserActionsCardProps) => {
   const { toast } = useToast();
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [assignedEmployees, setAssignedEmployees] = useState<any[]>([]);
+  const [loadingAssignedEmployees, setLoadingAssignedEmployees] =
+    useState(false);
+
+  // Fetch assigned employees if user is a Gerant
+  useEffect(() => {
+    const fetchAssignedEmployees = async () => {
+      if (user.role?.name === "Gerant") {
+        setLoadingAssignedEmployees(true);
+        try {
+          const employees = await users.getGerantAssignedEmployees(user.id);
+          setAssignedEmployees(employees);
+        } catch (error) {
+          console.error("Failed to fetch assigned employees:", error);
+        } finally {
+          setLoadingAssignedEmployees(false);
+        }
+      }
+    };
+
+    fetchAssignedEmployees();
+  }, [user.id, user.role?.name]);
 
   const handleDelete = async () => {
     try {
@@ -76,8 +98,8 @@ export const UserActionsCard = ({
 
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => setShowEditForm(true)}
                 className="flex items-center gap-2"
               >
@@ -85,8 +107,8 @@ export const UserActionsCard = ({
                 Edit User
               </Button>
 
-              <Button 
-                variant="default" 
+              <Button
+                variant="default"
                 onClick={() => setShowDeleteDialog(true)}
                 className="flex items-center gap-2"
               >
@@ -98,12 +120,47 @@ export const UserActionsCard = ({
             <div className="space-y-2">
               <h4 className="font-medium">User Details</h4>
               <div className="text-sm text-gray-600 space-y-1">
-                <p><span className="font-medium">Name:</span> {user.username}</p>
-                <p><span className="font-medium">Email:</span> {user.email}</p>
-                <p><span className="font-medium">Role:</span> {user.role?.name || "None"}</p>
-                <p><span className="font-medium">Status:</span> Active</p>
+                <p>
+                  <span className="font-medium">Name:</span> {user.username}
+                </p>
+                <p>
+                  <span className="font-medium">Email:</span> {user.email}
+                </p>
+                <p>
+                  <span className="font-medium">Role:</span>{" "}
+                  {user.role?.name || "None"}
+                </p>
+                <p>
+                  <span className="font-medium">Status:</span> Active
+                </p>
               </div>
             </div>
+
+            {/* Show assigned employees if user is a Gerant */}
+            {user.role?.name === "Gerant" && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Assigned Employees</h4>
+                {loadingAssignedEmployees ? (
+                  <div className="text-center py-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-xs text-gray-500 mt-1">Loading...</p>
+                  </div>
+                ) : assignedEmployees.length === 0 ? (
+                  <p className="text-sm text-gray-500">No employees assigned</p>
+                ) : (
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {assignedEmployees.map((employee) => (
+                      <div key={employee.id} className="text-sm text-gray-600">
+                        •{" "}
+                        {employee.user?.username ||
+                          employee.username ||
+                          "Unknown"}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -115,7 +172,8 @@ export const UserActionsCard = ({
               await users.updateUser(user.id, {
                 username: formData.username,
                 email: formData.email,
-                role_id: formData.role_id
+                role_id: formData.role_id,
+                assigned_employee_ids: formData.assigned_employee_ids,
               });
               toast({
                 title: "Success",
@@ -137,7 +195,8 @@ export const UserActionsCard = ({
             email: user.email,
             role_id: user.role?.id || "",
             password: "",
-            confirmPassword: ""
+            confirmPassword: "",
+            assigned_employee_ids: assignedEmployees.map((emp) => emp.id),
           }}
           isEditing
         />
@@ -150,17 +209,18 @@ export const UserActionsCard = ({
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the user account.
+                This action cannot be undone. This will permanently delete the
+                user account.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-4">
-              <AlertDialogCancel 
+              <AlertDialogCancel
                 onClick={() => setShowDeleteDialog(false)}
                 disabled={isDeleting}
               >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction 
+              <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-red-600 hover:bg-red-700"
                 disabled={isDeleting}
