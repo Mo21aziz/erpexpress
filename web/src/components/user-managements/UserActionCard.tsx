@@ -45,6 +45,7 @@ export const UserActionsCard = ({
         setLoadingAssignedEmployees(true);
         try {
           const employees = await users.getGerantAssignedEmployees(user.id);
+          console.log("Fetched assigned employees:", employees); // Debug log
           setAssignedEmployees(employees);
         } catch (error) {
           console.error("Failed to fetch assigned employees:", error);
@@ -83,8 +84,8 @@ export const UserActionsCard = ({
     <>
       {/* Main Card Content */}
       {!showEditForm ? (
-        <Card className="w-full max-w-md">
-          <CardHeader className="flex flex-row justify-between items-center">
+        <Card className="w-full max-w-md max-h-[90vh] flex flex-col">
+          <CardHeader className="flex flex-row justify-between items-center flex-shrink-0">
             <CardTitle>Manage User</CardTitle>
             <Button
               variant="ghost"
@@ -96,7 +97,7 @@ export const UserActionsCard = ({
             </Button>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="flex-1 overflow-y-auto space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <Button
                 variant="ghost"
@@ -164,42 +165,49 @@ export const UserActionsCard = ({
           </CardContent>
         </Card>
       ) : (
-        <UserFormCard
-          title="Edit User"
-          onClose={() => setShowEditForm(false)}
-          onSave={async (formData) => {
-            try {
-              await users.updateUser(user.id, {
-                username: formData.username,
-                email: formData.email,
-                role_id: formData.role_id,
-                assigned_employee_ids: formData.assigned_employee_ids,
-              });
-              toast({
-                title: "Success",
-                description: "User updated successfully",
-              });
-              onUserUpdated();
-              setShowEditForm(false);
-            } catch (error) {
-              toast({
-                title: "Error",
-                description: "Failed to update user",
-                variant: "destructive",
-              });
-            }
-          }}
-          roles={roles}
-          initialData={{
-            username: user.username,
-            email: user.email,
-            role_id: user.role?.id || "",
-            password: "",
-            confirmPassword: "",
-            assigned_employee_ids: assignedEmployees.map((emp) => emp.id),
-          }}
-          isEditing
-        />
+        <div className="w-full max-w-md max-h-[90vh]">
+          <UserFormCard
+            title="Edit User"
+            onClose={() => setShowEditForm(false)}
+            onSave={async (formData) => {
+              try {
+                const updateData = {
+                  username: formData.username,
+                  email: formData.email,
+                  role_id: formData.role_id,
+                  assigned_employee_ids: formData.assigned_employee_ids,
+                };
+                console.log("Updating user with data:", updateData); // Debug log
+                await users.updateUser(user.id, updateData);
+                toast({
+                  title: "Success",
+                  description: "User updated successfully",
+                });
+                onUserUpdated();
+                setShowEditForm(false);
+              } catch (error) {
+                console.error("Error updating user:", error); // Debug log
+                toast({
+                  title: "Error",
+                  description: "Failed to update user",
+                  variant: "destructive",
+                });
+              }
+            }}
+            roles={roles}
+            initialData={{
+              username: user.username,
+              email: user.email,
+              role_id: user.role?.id || "",
+              password: "",
+              confirmPassword: "",
+              assigned_employee_ids: assignedEmployees.map(
+                (emp) => emp.user?.id || emp.id
+              ),
+            }}
+            isEditing
+          />
+        </div>
       )}
 
       {/* Centered Delete Confirmation Modal */}

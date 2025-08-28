@@ -41,6 +41,11 @@ interface Employee {
     id: string;
     name: string;
   };
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+  };
 }
 
 export const UserFormCard = ({
@@ -80,6 +85,7 @@ export const UserFormCard = ({
           setLoadingEmployees(true);
           try {
             const employeesData = await users.getEmployees();
+            console.log("Fetched employees:", employeesData); // Debug log
             setEmployees(employeesData);
           } catch (error) {
             console.error("Failed to fetch employees:", error);
@@ -119,6 +125,7 @@ export const UserFormCard = ({
 
     setIsSubmitting(true);
     try {
+      console.log("Submitting form data:", formData); // Debug log
       await onSave(formData);
     } catch (err) {
       setErrors({
@@ -143,8 +150,10 @@ export const UserFormCard = ({
   const isGerantRole = selectedRole?.name === "Gerant";
 
   return (
-    <Card className={cn("w-full max-w-md", className)}>
-      <CardHeader className="flex flex-row justify-between items-center">
+    <Card
+      className={cn("w-full max-w-md max-h-[90vh] flex flex-col", className)}
+    >
+      <CardHeader className="flex flex-row justify-between items-center flex-shrink-0">
         <CardTitle>{isEditing ? "Edit User" : "Add New User"}</CardTitle>
         <Button
           variant="ghost"
@@ -156,9 +165,9 @@ export const UserFormCard = ({
         </Button>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="flex-1 overflow-y-auto space-y-4">
         {errors.general && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {errors.general}
           </div>
         )}
@@ -264,7 +273,7 @@ export const UserFormCard = ({
               ) : employees.length === 0 ? (
                 <p className="text-sm text-gray-500">No employees available</p>
               ) : (
-                <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-3">
+                <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-3">
                   {employees.map((employee) => (
                     <div
                       key={employee.id}
@@ -274,20 +283,22 @@ export const UserFormCard = ({
                         id={`employee-${employee.id}`}
                         checked={
                           formData.assigned_employee_ids?.includes(
-                            employee.id
+                            employee.user?.id || employee.id
                           ) || false
                         }
                         onCheckedChange={() =>
-                          handleEmployeeToggle(employee.id)
+                          handleEmployeeToggle(employee.user?.id || employee.id)
                         }
                       />
                       <Label
                         htmlFor={`employee-${employee.id}`}
                         className="text-sm cursor-pointer flex-1"
                       >
-                        <div className="font-medium">{employee.username}</div>
+                        <div className="font-medium">
+                          {employee.user?.username || employee.username}
+                        </div>
                         <div className="text-xs text-gray-500">
-                          {employee.email}
+                          {employee.user?.email || employee.email}
                         </div>
                       </Label>
                     </div>
@@ -296,22 +307,24 @@ export const UserFormCard = ({
               )}
             </div>
           )}
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="ghost" type="button" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700"
-              disabled={isSubmitting}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
-          </div>
         </form>
       </CardContent>
+
+      {/* Fixed footer with buttons */}
+      <div className="flex justify-end space-x-2 p-6 border-t bg-gray-50 flex-shrink-0">
+        <Button variant="ghost" type="button" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700"
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {isSubmitting ? "Saving..." : "Save"}
+        </Button>
+      </div>
     </Card>
   );
 };

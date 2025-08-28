@@ -81,8 +81,10 @@ export const RoleFormCard = ({
   };
 
   return (
-    <Card className={cn("w-full max-w-md", className)}>
-      <CardHeader className="flex flex-row justify-between items-center">
+    <Card
+      className={cn("w-full max-w-md max-h-[90vh] flex flex-col", className)}
+    >
+      <CardHeader className="flex flex-row justify-between items-center flex-shrink-0">
         <CardTitle>{title}</CardTitle>
         <Button
           variant="ghost"
@@ -94,9 +96,9 @@ export const RoleFormCard = ({
         </Button>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="flex-1 space-y-4">
         {errors.general && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {errors.general}
           </div>
         )}
@@ -116,22 +118,24 @@ export const RoleFormCard = ({
               <p className="text-sm text-red-600">{errors.name}</p>
             )}
           </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="ghost" type="button" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-purple-600 hover:bg-purple-700"
-              disabled={isSubmitting}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
-          </div>
         </form>
       </CardContent>
+
+      {/* Fixed footer with buttons */}
+      <div className="flex justify-end space-x-2 p-6 border-t bg-gray-50 flex-shrink-0">
+        <Button variant="ghost" type="button" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="bg-purple-600 hover:bg-purple-700"
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {isSubmitting ? "Saving..." : "Save"}
+        </Button>
+      </div>
     </Card>
   );
 };

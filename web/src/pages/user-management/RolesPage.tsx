@@ -133,24 +133,28 @@ export function RolesPage() {
       {/* Add Role Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <RoleFormCard
-            title="Add New Role"
-            onClose={handleCloseModal}
-            onSave={handleCreateRole}
-          />
+          <div className="w-full max-w-md max-h-[90vh] p-4">
+            <RoleFormCard
+              title="Add New Role"
+              onClose={handleCloseModal}
+              onSave={handleCreateRole}
+            />
+          </div>
         </div>
       )}
 
       {/* Edit Role Modal */}
       {selectedRole && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <RoleFormCard
-            title="Edit Role"
-            onClose={handleCloseModal}
-            onSave={handleUpdateRole}
-            initialData={{ name: selectedRole.name }}
-            isEditing={true}
-          />
+          <div className="w-full max-w-md max-h-[90vh] p-4">
+            <RoleFormCard
+              title="Edit Role"
+              onClose={handleCloseModal}
+              onSave={handleUpdateRole}
+              initialData={{ name: selectedRole.name }}
+              isEditing={true}
+            />
+          </div>
         </div>
       )}
     </div>

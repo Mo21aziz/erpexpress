@@ -86,23 +86,23 @@ export class UserService {
         data.assigned_employee_ids.length > 0
       ) {
         // Verify all user IDs exist and get their employee records
-        const users = await tx.user.findMany({
+        const usersToAssign = await tx.user.findMany({
           where: { id: { in: data.assigned_employee_ids } },
           include: { employee: true },
         });
 
-        if (users.length !== data.assigned_employee_ids.length) {
+        if (usersToAssign.length !== data.assigned_employee_ids.length) {
           throw new Error("Some user IDs are invalid");
         }
 
         // Create Gerant-Employee assignments
         const assignmentData = [];
-        for (const user of users) {
+        for (const userToAssign of usersToAssign) {
           // If user doesn't have an employee record, create one
-          let employeeId = user.employee?.id;
+          let employeeId = userToAssign.employee?.id;
           if (!employeeId) {
             const employee = await tx.employee.create({
-              data: { user_id: user.id },
+              data: { user_id: userToAssign.id },
             });
             employeeId = employee.id;
           }
@@ -123,6 +123,7 @@ export class UserService {
   }
 
   async updateUser(id: string, data: UpdateUserInput): Promise<User> {
+    console.log("UserService.updateUser called with:", { id, data }); // Debug log
     return await this.prisma.$transaction(async (tx) => {
       // Get the user's current role
       const currentUser = await tx.user.findUnique({
@@ -134,8 +135,11 @@ export class UserService {
         throw new Error("User not found");
       }
 
+      console.log("Current user:", currentUser); // Debug log
+
       // Update user data
       const updatedUser = await this.userRepository.update(id, data);
+      console.log("Updated user:", updatedUser); // Debug log
 
       // Handle Gerant employee assignments if role is being changed to Gerant or if assignments are being updated
       if (data.role_id) {
@@ -143,7 +147,13 @@ export class UserService {
           where: { id: data.role_id },
         });
 
+        console.log("New role:", newRole); // Debug log
+
         if (newRole?.name === "Gerant" && data.assigned_employee_ids) {
+          console.log(
+            "Handling Gerant role with assigned employees:",
+            data.assigned_employee_ids
+          ); // Debug log
           // Remove existing assignments
           await tx.gerantEmployeeAssignment.deleteMany({
             where: { gerant_id: id },
@@ -151,31 +161,36 @@ export class UserService {
 
           // Create new assignments if employee IDs are provided
           if (data.assigned_employee_ids.length > 0) {
-            const users = await tx.user.findMany({
+            // Get the users to be assigned
+            const usersToAssign = await tx.user.findMany({
               where: { id: { in: data.assigned_employee_ids } },
               include: { employee: true },
             });
 
-            if (users.length !== data.assigned_employee_ids.length) {
+            console.log("Users to assign:", usersToAssign); // Debug log
+
+            if (usersToAssign.length !== data.assigned_employee_ids.length) {
               throw new Error("Some user IDs are invalid");
             }
 
             const assignmentData = [];
-            for (const user of users) {
+            for (const userToAssign of usersToAssign) {
               // If user doesn't have an employee record, create one
-              let employeeId = user.employee?.id;
+              let employeeId = userToAssign.employee?.id;
               if (!employeeId) {
                 const employee = await tx.employee.create({
-                  data: { user_id: user.id },
+                  data: { user_id: userToAssign.id },
                 });
                 employeeId = employee.id;
               }
 
               assignmentData.push({
-                gerant_id: id,
+                gerant_id: id, // Use the current user's ID as gerant_id
                 employee_id: employeeId,
               });
             }
+
+            console.log("Assignment data:", assignmentData); // Debug log
 
             await tx.gerantEmployeeAssignment.createMany({
               data: assignmentData,
@@ -191,37 +206,46 @@ export class UserService {
         currentUser.role.name === "Gerant" &&
         data.assigned_employee_ids
       ) {
+        console.log(
+          "Updating assignments for existing Gerant:",
+          data.assigned_employee_ids
+        ); // Debug log
         // Update assignments for existing Gerant
         await tx.gerantEmployeeAssignment.deleteMany({
           where: { gerant_id: id },
         });
 
         if (data.assigned_employee_ids.length > 0) {
-          const users = await tx.user.findMany({
+          // Get the users to be assigned
+          const usersToAssign = await tx.user.findMany({
             where: { id: { in: data.assigned_employee_ids } },
             include: { employee: true },
           });
 
-          if (users.length !== data.assigned_employee_ids.length) {
+          console.log("Users to assign:", usersToAssign); // Debug log
+
+          if (usersToAssign.length !== data.assigned_employee_ids.length) {
             throw new Error("Some user IDs are invalid");
           }
 
           const assignmentData = [];
-          for (const user of users) {
+          for (const userToAssign of usersToAssign) {
             // If user doesn't have an employee record, create one
-            let employeeId = user.employee?.id;
+            let employeeId = userToAssign.employee?.id;
             if (!employeeId) {
               const employee = await tx.employee.create({
-                data: { user_id: user.id },
+                data: { user_id: userToAssign.id },
               });
               employeeId = employee.id;
             }
 
             assignmentData.push({
-              gerant_id: id,
+              gerant_id: id, // Use the current user's ID as gerant_id
               employee_id: employeeId,
             });
           }
+
+          console.log("Assignment data:", assignmentData); // Debug log
 
           await tx.gerantEmployeeAssignment.createMany({
             data: assignmentData,

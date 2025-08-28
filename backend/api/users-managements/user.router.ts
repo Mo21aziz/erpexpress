@@ -126,6 +126,9 @@ router.get("/:id", async (req: Request, res: Response) => {
 // Update user
 console.log("Registering route: PUT /:id");
 router.put("/:id", async (req: Request, res: Response) => {
+  console.log("PUT /api/users/:id route hit"); // Debug log
+  console.log("Request body:", req.body); // Debug log
+  console.log("User ID:", req.params.id); // Debug log
   try {
     const user = await container.UserService.updateUser(
       req.params.id,
@@ -133,6 +136,7 @@ router.put("/:id", async (req: Request, res: Response) => {
     );
     res.status(200).json(user);
   } catch (error: any) {
+    console.error("Error updating user:", error); // Debug log
     res.status(400).json({ error: error.message });
   }
 });

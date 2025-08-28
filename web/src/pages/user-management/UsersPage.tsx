@@ -142,7 +142,7 @@ export function UsersPage() {
       {/* Add User Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md max-h-[90vh]">
             <UserFormCard
               onClose={() => setShowAddModal(false)}
               onSave={handleAddUser}
@@ -155,7 +155,7 @@ export function UsersPage() {
       {/* Edit/Delete User Modal */}
       {selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md max-h-[90vh]">
             <UserActionsCard
               user={selectedUser}
               onClose={() => setSelectedUser(null)}
