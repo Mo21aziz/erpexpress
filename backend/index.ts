@@ -157,7 +157,7 @@ app.post("/api/debug/seed-roles", async (req: Request, res: Response) => {
       { name: "Gerant" },
     ];
 
-    const createdRoles = [];
+    const createdRoles: { id: string; name: string }[] = [];
     for (const role of roles) {
       const createdRole = await prisma.role.upsert({
         where: { name: role.name },
