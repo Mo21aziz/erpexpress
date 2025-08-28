@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.ts",
   "type": "module",
-  "scripts": {
-  "dev": "nodemon -e ts --exec \"tsx ./src/index.ts\"",
+"scripts": {
+  "dev": "nodemon -e ts --exec \"tsx ./index.ts\"",
   "type-check": "tsc --noEmit",
   "build": "echo \"skipping build\"",
-  "start": "tsx ./src/index.ts"
+  "start": "tsx ./index.ts"
 },
   "keywords": [],
   "author": "",
@@ -30,7 +30,7 @@
     "prisma": "^6.12.0",
     "prisma-generator-typescript-interfaces": "^2.1.0",
     "ts-node": "^10.9.2",
-    "tsx": "^4.20.5",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }
