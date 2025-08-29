@@ -2,7 +2,7 @@ import { CorsOptions } from "cors";
 import { getEnvironmentConfig } from "./environment.config";
 
 // Define allowed origins for different environments
-const getAllowedOrigins = (): string[] => {
+export const getAllowedOrigins = (): string[] => {
   const envConfig = getEnvironmentConfig();
 
   // If CORS_ORIGINS environment variable is set, use it
@@ -20,8 +20,8 @@ const getAllowedOrigins = (): string[] => {
 
     // Production origins
     "https://erpexpress.onrender.com", // Production backend
-    // Add your production frontend domain here when you deploy it
-    // "https://your-frontend-domain.com"
+    "https://erpexpress-x7fh.vercel.app", // Production frontend on Vercel
+    // Add any other production frontend domains here
   ];
 };
 

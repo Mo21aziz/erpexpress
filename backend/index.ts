@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { corsConfig } from "./lib/config/cors.config";
+import { getAllowedOrigins } from "./lib/config/cors.config";
 import connect from "./api/auth/connect";
 import categoryRouter from "./api/category/cat.management";
 import articleRouter from "./api/category/article.management";
@@ -206,12 +207,33 @@ app.post("/api/debug/seed-roles", async (req: Request, res: Response) => {
 
 // CORS test endpoint
 app.get("/api/cors-test", (req: Request, res: Response) => {
+  const allowedOrigins = getAllowedOrigins();
   res.json({
     message: "CORS is working!",
     timestamp: new Date().toISOString(),
     origin: req.headers.origin,
     method: req.method,
+    allowedOrigins: allowedOrigins,
+    isOriginAllowed: req.headers.origin
+      ? allowedOrigins.includes(req.headers.origin)
+      : "No origin",
     headers: req.headers,
+  });
+});
+
+// CORS debug endpoint - shows current CORS configuration
+app.get("/api/cors-debug", (req: Request, res: Response) => {
+  const allowedOrigins = getAllowedOrigins();
+  res.json({
+    message: "CORS Configuration Debug",
+    timestamp: new Date().toISOString(),
+    currentOrigin: req.headers.origin,
+    allowedOrigins: allowedOrigins,
+    isOriginAllowed: req.headers.origin
+      ? allowedOrigins.includes(req.headers.origin)
+      : "No origin",
+    environment: process.env.NODE_ENV || "development",
+    corsOriginsEnv: process.env.CORS_ORIGINS || "Not set",
   });
 });
 
