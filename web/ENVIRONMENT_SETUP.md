@@ -18,6 +18,7 @@ VITE_API_BASE_URL=http://localhost:5000
 
 ```
 VITE_API_BASE_URL=https://erpexpress.onrender.com
+VITE_FRONTEND_URL=https://erpexpress-x7fh-nh02khwlx-medazizzarrouks-projects.vercel.app
 ```
 
 #### `.env` (default, will be used if no specific environment file exists)

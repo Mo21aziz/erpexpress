@@ -21,6 +21,7 @@ export const getAllowedOrigins = (): string[] => {
     // Production origins
     "https://erpexpress.onrender.com", // Production backend
     "https://erpexpress-x7fh.vercel.app", // Production frontend on Vercel
+    "https://erpexpress-x7fh-nh02khwlx-medazizzarrouks-projects.vercel.app", // Exact Vercel frontend URL
     // Add any other production frontend domains here
   ];
 };
