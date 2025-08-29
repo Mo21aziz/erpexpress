@@ -1,8 +1,9 @@
 import axios from "axios";
+import { API_BASE_URL } from "./config";
 
 // Create axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -53,15 +54,19 @@ api.interceptors.response.use(
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
-        
+
         // Show a toast notification about session expiration
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           // Dispatch a custom event to notify the app about logout
-          window.dispatchEvent(new CustomEvent('sessionExpired', {
-            detail: { message: 'Your session has expired. Please log in again.' }
-          }));
+          window.dispatchEvent(
+            new CustomEvent("sessionExpired", {
+              detail: {
+                message: "Your session has expired. Please log in again.",
+              },
+            })
+          );
         }
-        
+
         window.location.href = "/signin";
       }
     }

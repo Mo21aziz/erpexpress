@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useAuthPersistStore } from "../hooks/store/useAuthPersistStore";
+import { API_BASE_URL } from "./config";
 
 // Create axios instance
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: API_BASE_URL,
 });
 
 // Add request interceptor

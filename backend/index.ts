@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { CorsOptions } from "cors";
+import { corsConfig } from "./lib/config/cors.config";
 import connect from "./api/auth/connect";
 import categoryRouter from "./api/category/cat.management";
 import articleRouter from "./api/category/article.management";
@@ -25,14 +25,41 @@ const app = express();
 const PORT = 5000;
 
 // Enable CORS
-const corsOptions: CorsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:3000"], // Vite dev server and potential other ports
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+app.use(cors(corsConfig));
 
-app.use(cors(corsOptions));
+// Add security headers and logging
+app.use((req: Request, res: Response, next) => {
+  // Log incoming requests for debugging
+  console.log(
+    `${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${
+      req.headers.origin || "No origin"
+    }`
+  );
+
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Max-Age", "86400");
+    res.status(200).end();
+    return;
+  }
+
+  // Add security headers
+  res.header("X-Content-Type-Options", "nosniff");
+  res.header("X-Frame-Options", "DENY");
+  res.header("X-XSS-Protection", "1; mode=block");
+
+  next();
+});
 
 app.use(express.json());
 
@@ -175,6 +202,17 @@ app.post("/api/debug/seed-roles", async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to seed roles", details: error });
   }
+});
+
+// CORS test endpoint
+app.get("/api/cors-test", (req: Request, res: Response) => {
+  res.json({
+    message: "CORS is working!",
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    method: req.method,
+    headers: req.headers,
+  });
 });
 
 app.use("/api/auth", connect);
