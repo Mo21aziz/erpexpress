@@ -17,6 +17,10 @@ export const getAllowedOrigins = (): string[] => {
     "http://localhost:3000", // React dev server
     "http://localhost:4173", // Vite preview
     "http://localhost:5000", // Backend dev server
+
+    // Production origins
+    "https://erpexpress.vercel.app", // Main Vercel deployment
+    "https://erpexpress-qk8u3onoh-medazizzarrouks-projects.vercel.app", // Vercel preview
   ];
 };
 
