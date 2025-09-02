@@ -11,13 +11,13 @@ model Article {
   id                         String                  @id @default(uuid())
   name                       String
   description                String?
-  numero                     Int?
   price                      Decimal?                @db.Decimal(10, 2)
-  collisage                  String
-  type                       String                  @default("catering")
   category_id                String
-  quantite_a_stocker         Decimal?                @db.Decimal(10, 2)
+  collisage                  String
   quantite_a_demander        Decimal?                @db.Decimal(10, 2)
+  quantite_a_stocker         Decimal?                @db.Decimal(10, 2)
+  type                       String                  @default("catering")
+  numero                     Int?
   category                   Category                @relation(fields: [category_id], references: [id])
   bon_de_commande_categories BonDeCommandeCategory[]
 
@@ -35,10 +35,10 @@ model Category {
 model BonDeCommandeCategory {
   id                  String        @id @default(uuid())
   category_id         String
-  article_id          String?
   bon_de_commande_id  String
-  quantite_a_stocker  Decimal?      @db.Decimal(10, 2) @default(0)
-  quantite_a_demander Decimal?      @db.Decimal(10, 2) @default(0)
+  quantite_a_demander Decimal       @default(0.00) @db.Decimal(10, 2)
+  quantite_a_stocker  Decimal       @default(0.00) @db.Decimal(10, 2)
+  article_id          String?
   article             Article?      @relation(fields: [article_id], references: [id])
   bon_de_commande     BonDeCommande @relation(fields: [bon_de_commande_id], references: [id])
   category            Category      @relation(fields: [category_id], references: [id])
@@ -50,12 +50,12 @@ model BonDeCommandeCategory {
 
 model BonDeCommande {
   id          String                  @id @default(uuid())
-  code        String                  @unique
   created_at  DateTime                @default(now())
-  target_date DateTime                @default(now())
   description String
   status      String
   employee_id String
+  code        String                  @unique
+  target_date DateTime                @default(now())
   employee    Employee                @relation(fields: [employee_id], references: [id])
   categories  BonDeCommandeCategory[]
 

@@ -17,12 +17,6 @@ export const getAllowedOrigins = (): string[] => {
     "http://localhost:3000", // React dev server
     "http://localhost:4173", // Vite preview
     "http://localhost:5000", // Backend dev server
-
-    // Production origins
-    "https://erpexpress.onrender.com", // Production backend
-    "https://erpexpress-x7fh.vercel.app", // Production frontend on Vercel
-    "https://erpexpress-x7fh-h5bgu2ljx-medazizzarrouks-projects.vercel.app" // Exact Vercel frontend URL
-    // Add any other production frontend domains here
   ];
 };
 
@@ -34,13 +28,25 @@ export const corsConfig: CorsOptions = {
   ) => {
     const allowedOrigins = getAllowedOrigins();
 
+    const normalize = (url: string) =>
+      url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    const originNormalized = origin ? normalize(origin) : "";
+
+    // Allow Vercel preview URLs for this project (erpexpress-x7fh-*)
+    const vercelPreviewPattern =
+      /^https?:\/\/erpexpress-x7fh-[a-z0-9-]+\.vercel\.app$/;
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
       return callback(null, true);
     }
 
-    // Check if the origin is allowed
-    if (allowedOrigins.includes(origin)) {
+    // Check if the origin is allowed (exact or normalized match)
+    if (
+      (origin && allowedOrigins.includes(origin)) ||
+      (origin && allowedOrigins.map(normalize).includes(originNormalized)) ||
+      (origin && vercelPreviewPattern.test(origin))
+    ) {
       return callback(null, true);
     }
 
