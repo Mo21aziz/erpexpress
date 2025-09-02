@@ -408,9 +408,8 @@ export const BonDeCommandeDetailModal: React.FC<
             demand: entry.quantite_a_demander ?? null,
           };
           initialDisplayValues[entry.id] = {
-            stock: entry.quantite_a_stocker?.toString().replace(".", ",") ?? "",
-            demand:
-              entry.quantite_a_demander?.toString().replace(".", ",") ?? "",
+            stock: entry.quantite_a_stocker?.toString() ?? "",
+            demand: entry.quantite_a_demander?.toString() ?? "",
           };
         }
       });
@@ -596,9 +595,8 @@ export const BonDeCommandeDetailModal: React.FC<
             demand: entry.quantite_a_demander ?? null,
           };
           initialDisplayValues[entry.id] = {
-            stock: entry.quantite_a_stocker?.toString().replace(".", ",") ?? "",
-            demand:
-              entry.quantite_a_demander?.toString().replace(".", ",") ?? "",
+            stock: entry.quantite_a_stocker?.toString() ?? "",
+            demand: entry.quantite_a_demander?.toString() ?? "",
           };
         }
       });
@@ -955,9 +953,8 @@ export const BonDeCommandeDetailModal: React.FC<
                                           />
                                         ) : (
                                           <span className="text-sm font-medium text-green-600">
-                                            {entry.quantite_a_stocker
-                                              ?.toString()
-                                              .replace(".", ",") ?? ""}
+                                            {entry.quantite_a_stocker?.toString() ??
+                                              ""}
                                           </span>
                                         )}
                                       </td>
@@ -1019,9 +1016,8 @@ export const BonDeCommandeDetailModal: React.FC<
                                           />
                                         ) : (
                                           <span className="text-sm font-medium text-orange-600">
-                                            {entry.quantite_a_demander
-                                              ?.toString()
-                                              .replace(".", ",") ?? ""}
+                                            {entry.quantite_a_demander?.toString() ??
+                                              ""}
                                           </span>
                                         )}
                                       </td>
