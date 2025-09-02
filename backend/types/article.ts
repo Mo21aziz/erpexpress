@@ -8,8 +8,8 @@ export interface Article {
   collisage: string;
   type: string; // "catering" or "sonodis"
   numero?: number;
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
   category_id: string;
   category?: {
     id: string;
@@ -24,8 +24,8 @@ export type CreateArticleInput = {
   collisage: string;
   type: string; // "catering" or "sonodis"
   numero?: number;
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
   category_id: string;
 };
 

@@ -35,8 +35,8 @@ export interface Article {
   collisage: string;
   type: string; // "catering" or "sonodis"
   numero?: number;
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
   category_id: string;
   category?: {
     id: string;
@@ -68,8 +68,8 @@ export interface BonDeCommandeCategory {
   id: string;
   category_id: string;
   bon_de_commande_id: string;
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
   category: {
     id: string;
     name: string;

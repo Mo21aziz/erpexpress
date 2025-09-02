@@ -25,12 +25,14 @@ interface CategoryArticlesModalProps {
   isOpen: boolean;
   onClose: () => void;
   category: Category | null;
+  selectedDate?: string;
 }
 
 export function CategoryArticlesModal({
   isOpen,
   onClose,
   category,
+  selectedDate,
 }: CategoryArticlesModalProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,8 +44,10 @@ export function CategoryArticlesModal({
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [lastBonDeCommandeValues, setLastBonDeCommandeValues] = useState<
-    Record<string, { quantite_a_stocker: number; quantite_a_demander: number }>
+    Record<string, { quantite_a_stocker: any; quantite_a_demander: any }>
   >({});
+  const [hasConfirmedBonDeCommande, setHasConfirmedBonDeCommande] =
+    useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const canManageArticles =
@@ -53,39 +57,45 @@ export function CategoryArticlesModal({
     if (!category) return;
 
     try {
-      // Get tomorrow's date
-      const today = new Date();
-      const tomorrow = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate() + 1
-      );
-      const tomorrowFormatted =
-        tomorrow.getFullYear() +
-        "-" +
-        String(tomorrow.getMonth() + 1).padStart(2, "0") +
-        "-" +
-        String(tomorrow.getDate()).padStart(2, "0");
+      // Use selected date or default to tomorrow
+      const targetDate =
+        selectedDate ||
+        (() => {
+          const today = new Date();
+          const tomorrow = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() + 1
+          );
+          return tomorrow.toISOString().split("T")[0];
+        })();
 
       // Fetch all bon de commande
       const allBonDeCommandes = await bonDeCommandeApi.getBonDeCommande();
 
-      // Find the latest bon de commande for tomorrow's date
-      const latestBonDeCommande = allBonDeCommandes
-        .filter((bdc) => {
-          const bdcDate = new Date(bdc.created_at).toISOString().split("T")[0];
-          return bdcDate === tomorrowFormatted;
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )[0];
+      // Find bon de commande for the target date
+      const targetDateBonDeCommandes = allBonDeCommandes.filter((bdc) => {
+        const bdcDate = new Date(bdc.target_date).toISOString().split("T")[0];
+        return bdcDate === targetDate;
+      });
+
+      // Check if any bon de commande is confirmed
+      const confirmedBonDeCommande = targetDateBonDeCommandes.find(
+        (bdc) => bdc.status === "confirmer"
+      );
+      setHasConfirmedBonDeCommande(!!confirmedBonDeCommande);
+
+      // Get the latest bon de commande for quantities
+      const latestBonDeCommande = targetDateBonDeCommandes.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
 
       if (latestBonDeCommande) {
         // Create a map of article quantities from the bon de commande
         const articleQuantities: Record<
           string,
-          { quantite_a_stocker: number; quantite_a_demander: number }
+          { quantite_a_stocker: any; quantite_a_demander: any }
         > = {};
 
         latestBonDeCommande.categories.forEach((cat) => {
@@ -137,6 +147,13 @@ export function CategoryArticlesModal({
       fetchArticles();
     }
   }, [isOpen, category]);
+
+  // Refetch bon de commande status when selectedDate changes
+  useEffect(() => {
+    if (isOpen && category && selectedDate) {
+      fetchLastBonDeCommandeValues();
+    }
+  }, [selectedDate]);
 
   const handleAddArticle = () => {
     setFormMode("add");
@@ -191,18 +208,11 @@ export function CategoryArticlesModal({
     field: "quantite_a_stocker" | "quantite_a_demander",
     value: number
   ) => {
-    // Debug logging
-    console.log(`Quantity change for article ${articleId}:`, {
-      field,
-      value,
-      valueType: typeof value,
-      isZero: value === 0,
-    });
-
-    // Only update the local state, don't save to database until "Valider" is pressed
-    setArticles(
-      articles.map((art) =>
-        art.id === articleId ? { ...art, [field]: value } : art
+    console.log(`Quantity change for article ${articleId}:`, { field, value });
+    // Update your state accordingly
+    setArticles((prev) =>
+      prev.map((article) =>
+        article.id === articleId ? { ...article, [field]: value } : article
       )
     );
   };
@@ -210,6 +220,27 @@ export function CategoryArticlesModal({
   const handleValidate = async () => {
     if (isSubmitting) return; // Prevent multiple simultaneous requests
     if (!category) return; // Early return if category is null
+
+    // Check if date is selected
+    if (!selectedDate) {
+      toast({
+        title: "❌ Date requise",
+        description:
+          "Veuillez sélectionner une date avant de valider les quantités.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (hasConfirmedBonDeCommande) {
+      toast({
+        title: "❌ Erreur",
+        description:
+          "Impossible de modifier les quantités car le bon de commande est déjà confirmé.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -235,13 +266,23 @@ export function CategoryArticlesModal({
         return;
       }
 
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowFormatted = tomorrow.toLocaleDateString("fr-FR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
+      // Use selected date or default to tomorrow
+      const targetDate =
+        selectedDate ||
+        (() => {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          return tomorrow.toISOString().split("T")[0];
+        })();
+
+      const targetDateFormatted = new Date(targetDate).toLocaleDateString(
+        "fr-FR",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }
+      );
 
       const promises = articlesToUpdate.map(async (article) => {
         const stock = Number(article.quantite_a_stocker ?? 0);
@@ -255,29 +296,54 @@ export function CategoryArticlesModal({
         });
 
         return bonDeCommandeApi.createBonDeCommande({
-          description: `Bon de commande du ${tomorrowFormatted}`,
+          description: `Bon de commande du ${targetDateFormatted}`,
           category_id: category.id,
           article_id: article.id, // Send individual article_id
           quantite_a_stocker: stock,
           quantite_a_demander: demand,
           article_name: article.name,
+          target_date: targetDate,
         });
       });
 
-      await Promise.all(promises);
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(
+          () => reject(new Error("Request timeout after 30 seconds")),
+          30000
+        );
+      });
+
+      // Race between the promises and the timeout
+      await Promise.race([Promise.all(promises), timeoutPromise]);
 
       toast({
         title: "✅ Succès",
         description: `Bon de commande mis à jour pour ${articlesToUpdate.length} article(s) pour demain!`,
       });
+
+      // Refresh the data to show updated values
+      await fetchLastBonDeCommandeValues();
+      await fetchArticles();
     } catch (err: unknown) {
-      const message =
+      let message =
         err instanceof AxiosError
           ? err.response?.data?.error ||
             "Failed to create/update bon de commande"
           : err instanceof Error
           ? err.message
           : "Failed to create/update bon de commande";
+
+      // Check if the error is about confirmed bon de commande
+      if (message.includes("confirmed bon de commande")) {
+        message =
+          "Impossible de modifier les quantités car le bon de commande est déjà confirmé.";
+      }
+
+      // Check for timeout error
+      if (message.includes("timeout")) {
+        message = "La validation a pris trop de temps. Veuillez réessayer.";
+      }
 
       setError(message);
       toast({
@@ -312,9 +378,29 @@ export function CategoryArticlesModal({
             <Button
               variant="default"
               size="sm"
-              onClick={handleValidate}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={articles.length === 0 || isSubmitting}
+              onClick={
+                hasConfirmedBonDeCommande || !selectedDate
+                  ? undefined
+                  : handleValidate
+              }
+              className={
+                hasConfirmedBonDeCommande || !selectedDate
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }
+              disabled={
+                articles.length === 0 ||
+                isSubmitting ||
+                hasConfirmedBonDeCommande ||
+                !selectedDate
+              }
+              title={
+                !selectedDate
+                  ? "Veuillez sélectionner une date d'abord"
+                  : hasConfirmedBonDeCommande
+                  ? "Impossible de modifier car le bon de commande est confirmé"
+                  : "Valider les quantités pour la date sélectionnée"
+              }
             >
               {isSubmitting ? (
                 <>
@@ -352,6 +438,24 @@ export function CategoryArticlesModal({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* Confirmed Bon De Commande Warning */}
+          {hasConfirmedBonDeCommande && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <Check className="h-5 w-5 text-red-600 mr-2" />
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">
+                    Bon de commande confirmé
+                  </h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    Le bon de commande pour demain a été confirmé et ne peut
+                    plus être modifié.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -394,6 +498,8 @@ export function CategoryArticlesModal({
                     lastBonDeCommandeValues={
                       lastBonDeCommandeValues[article.id]
                     }
+                    disabled={hasConfirmedBonDeCommande}
+                    selectedDate={selectedDate}
                   />
                 ))}
               </div>

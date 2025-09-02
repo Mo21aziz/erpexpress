@@ -9,8 +9,9 @@ export interface CreateBonDeCommandeData {
   target_date: Date;
   category_id: string;
   article_id: string; // Required for individual article entries
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
+  target_date_string?: string; // Optional string date from frontend
 }
 
 export interface BonDeCommande {
@@ -33,20 +34,27 @@ export interface BonDeCommande {
   categories: {
     id: string;
     category_id: string;
-    article_id?: string;
+    article_id: string | null;
     bon_de_commande_id: string;
-    quantite_a_stocker: number;
-    quantite_a_demander: number;
+    quantite_a_stocker: any; // Changed to any to handle Decimal
+    quantite_a_demander: any; // Changed to any to handle Decimal
     category: {
       id: string;
       name: string;
-      description: string;
+      description: string | null;
     };
     article?: {
       id: string;
       name: string;
-      description: string;
-    };
+      description: string | null;
+      category_id: string;
+      quantite_a_stocker: any; // Changed to any to handle Decimal
+      quantite_a_demander: any; // Changed to any to handle Decimal
+      numero: number | null;
+      price: any; // Use Decimal type if you have it imported
+      collisage: string;
+      type: string;
+    } | null; // Changed from undefined to null
   }[];
 }
 
@@ -280,6 +288,20 @@ export class BonDeCommandeService {
     data: Partial<CreateBonDeCommandeData>
   ): Promise<BonDeCommande> {
     return await this.prisma.$transaction(async (tx) => {
+      // First check if the bon de commande exists and its status
+      const existingBonDeCommande = await tx.bonDeCommande.findUnique({
+        where: { id },
+      });
+
+      if (!existingBonDeCommande) {
+        throw new Error("Bon de commande not found");
+      }
+
+      // Prevent updates if status is "confirmer"
+      if (existingBonDeCommande.status === "confirmer") {
+        throw new Error("Cannot update a confirmed bon de commande");
+      }
+
       const updateData: any = {};
 
       if (data.description) updateData.description = data.description;
@@ -356,15 +378,37 @@ export class BonDeCommandeService {
 
   async updateCategory(
     id: string,
-    data: { quantite_a_stocker?: number; quantite_a_demander?: number }
+    data: { quantite_a_stocker?: any; quantite_a_demander?: any }
   ): Promise<any> {
-    return await this.prisma.bonDeCommandeCategory.update({
-      where: { id },
-      data,
-      include: {
-        category: true,
-        article: true,
-      },
+    return await this.prisma.$transaction(async (tx) => {
+      // First get the category to find the bon de commande
+      const category = await tx.bonDeCommandeCategory.findUnique({
+        where: { id },
+        include: {
+          bon_de_commande: true,
+        },
+      });
+
+      if (!category) {
+        throw new Error("Category not found");
+      }
+
+      // Check if the bon de commande is confirmed
+      if (category.bon_de_commande.status === "confirmer") {
+        throw new Error(
+          "Cannot update quantities of a confirmed bon de commande"
+        );
+      }
+
+      // Update the category
+      return await tx.bonDeCommandeCategory.update({
+        where: { id },
+        data,
+        include: {
+          category: true,
+          article: true,
+        },
+      });
     });
   }
 

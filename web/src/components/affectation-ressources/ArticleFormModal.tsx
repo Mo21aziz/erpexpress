@@ -263,7 +263,7 @@ export function ArticleFormModal({
               onChange={(e) =>
                 setFormData({ ...formData, collisage: e.target.value })
               }
-              placeholder="e.g., Box, Bottle, Can"
+              
               required
             />
             {errors.collisage && (

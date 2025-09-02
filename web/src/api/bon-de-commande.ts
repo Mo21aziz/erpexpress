@@ -31,8 +31,8 @@ export interface BonDeCommandeCategory {
   category_id: string;
   article_id?: string;
   bon_de_commande_id: string;
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
   category: {
     id: string;
     name: string;
@@ -53,9 +53,10 @@ export interface CreateBonDeCommandeData {
   employee_id?: string; // Made optional since backend will auto-assign
   category_id: string;
   article_id?: string;
-  quantite_a_stocker: number;
-  quantite_a_demander: number;
+  quantite_a_stocker: any; // Changed to any to handle Decimal
+  quantite_a_demander: any; // Changed to any to handle Decimal
   article_name: string;
+  target_date?: string; // Optional target date in YYYY-MM-DD format
 }
 
 export const bonDeCommandeApi = {
@@ -169,8 +170,8 @@ export const bonDeCommandeApi = {
   updateBonDeCommandeCategory: async (
     categoryId: string,
     data: {
-      quantite_a_stocker?: number;
-      quantite_a_demander?: number;
+      quantite_a_stocker?: any;
+      quantite_a_demander?: any;
     }
   ): Promise<any> => {
     try {

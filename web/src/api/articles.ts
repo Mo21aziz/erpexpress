@@ -89,8 +89,8 @@ export const articles = {
       type: string;
       numero?: number;
       category_id: string;
-      quantite_a_stocker?: number;
-      quantite_a_demander?: number;
+      quantite_a_stocker?: any;
+      quantite_a_demander?: any;
     }
   ): Promise<Article> => {
     try {

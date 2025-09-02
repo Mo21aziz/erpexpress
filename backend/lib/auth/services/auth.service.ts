@@ -52,13 +52,17 @@ export class AuthService {
 
     console.log("User found:", user);
 
-    if (!user || !user.password) {
-      throw new Error("Invalid credentials");
+    
+     if (!user ) {
+      throw new Error("nom d'utilisateur incorrect");
+    }
+    if (!user.password) {
+      throw new Error("mot de passe incorrect");
     }
 
     const isMatch = await comparePasswords(payload.password, user.password);
     if (!isMatch) {
-      throw new Error("Invalid credentials");
+      throw new Error("mot de passe incorrect");
     }
 
     const userWithRole = await this.userService.getUserWithRole(user.id);

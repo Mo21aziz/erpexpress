@@ -6,7 +6,25 @@ const router = express.Router();
 
 // Create bon de commande
 router.post("/", authenticateToken, async (req: Request, res: Response) => {
+  const startTime = Date.now();
+
+  // Set headers to prevent connection reset
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Keep-Alive", "timeout=60");
+
+  // Set a timeout for the response
+  const responseTimeout = setTimeout(() => {
+    if (!res.headersSent) {
+      console.error("Response timeout - sending error response");
+      res.status(500).json({ error: "Response timeout" });
+    }
+  }, 25000); // 25 seconds timeout
+
   try {
+    console.log(
+      `[${new Date().toISOString()}] Starting bon de commande operation`
+    );
+
     const {
       description,
       employee_id,
@@ -15,6 +33,7 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
       quantite_a_stocker,
       quantite_a_demander,
       article_name,
+      target_date,
     } = req.body;
 
     // Validate required fields
@@ -42,11 +61,46 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
       article_name,
     });
 
-    // Wrap everything in a transaction to prevent race conditions
-    const result = await container.prisma.$transaction(async (tx) => {
-      // Create bon de commande with tomorrow's date in local timezone
-      const now = new Date();
-      const tomorrow = new Date(
+    // Get the current authenticated user's employee ID first (outside transaction)
+    let finalEmployeeId = employee_id;
+
+    if (!finalEmployeeId) {
+      // Find the employee record for the current authenticated user
+      const currentUserEmployee = await container.prisma.employee.findFirst({
+        where: {
+          user_id: req.user!.id,
+        },
+      });
+
+      if (currentUserEmployee) {
+        finalEmployeeId = currentUserEmployee.id;
+        console.log("Using current user's employee ID:", finalEmployeeId);
+      } else {
+        // If no employee record exists for the current user, create one
+        const newEmployee = await container.prisma.employee.create({
+          data: {
+            user_id: req.user!.id,
+          },
+        });
+        finalEmployeeId = newEmployee.id;
+        console.log(
+          "Created new employee record for current user:",
+          finalEmployeeId
+        );
+      }
+    }
+
+    // Use provided target_date or default to tomorrow
+    const now = new Date();
+    let targetDate: Date;
+
+    if (target_date) {
+      // Parse the provided target_date (YYYY-MM-DD format)
+      const [year, month, day] = target_date.split("-").map(Number);
+      targetDate = new Date(year, month - 1, day, 12, 0, 0, 0);
+    } else {
+      // Default to tomorrow if no target_date provided
+      targetDate = new Date(
         now.getFullYear(),
         now.getMonth(),
         now.getDate() + 1,
@@ -55,53 +109,27 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
         0,
         0
       );
+    }
 
-      console.log("Creating bon de commande with date:", tomorrow);
-      console.log("Tomorrow formatted:", tomorrow.toISOString());
+    console.log("Creating bon de commande with target date:", targetDate);
+    console.log("Target date formatted:", targetDate.toISOString());
 
-      // Get the current authenticated user's employee ID
-      let finalEmployeeId = employee_id;
+    // Check if bon de commande already exists for this user on the target date
+    // Create date range for the target date in local timezone
+    const startOfDay = new Date(
+      targetDate.getFullYear(),
+      targetDate.getMonth(),
+      targetDate.getDate()
+    );
+    const endOfDay = new Date(
+      targetDate.getFullYear(),
+      targetDate.getMonth(),
+      targetDate.getDate() + 1
+    );
 
-      if (!finalEmployeeId) {
-        // Find the employee record for the current authenticated user
-        const currentUserEmployee = await tx.employee.findFirst({
-          where: {
-            user_id: req.user!.id,
-          },
-        });
-
-        if (currentUserEmployee) {
-          finalEmployeeId = currentUserEmployee.id;
-          console.log("Using current user's employee ID:", finalEmployeeId);
-        } else {
-          // If no employee record exists for the current user, create one
-          const newEmployee = await tx.employee.create({
-            data: {
-              user_id: req.user!.id,
-            },
-          });
-          finalEmployeeId = newEmployee.id;
-          console.log(
-            "Created new employee record for current user:",
-            finalEmployeeId
-          );
-        }
-      }
-
-      // Check if bon de commande already exists for this user on tomorrow's date
-      // Create date range for tomorrow in local timezone
-      const startOfDay = new Date(
-        tomorrow.getFullYear(),
-        tomorrow.getMonth(),
-        tomorrow.getDate()
-      );
-      const endOfDay = new Date(
-        tomorrow.getFullYear(),
-        tomorrow.getMonth(),
-        tomorrow.getDate() + 1
-      );
-
-      const existingBonDeCommande = await tx.bonDeCommande.findFirst({
+    // First, just check if bon de commande exists without complex includes
+    const existingBonDeCommandeBasic =
+      await container.prisma.bonDeCommande.findFirst({
         where: {
           employee_id: finalEmployeeId,
           target_date: {
@@ -109,257 +137,182 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
             lt: endOfDay,
           },
         },
-        include: {
-          categories: {
-            include: {
-              category: true,
-              article: true,
-            },
-          },
+        select: {
+          id: true,
+          status: true,
         },
       });
 
-      if (existingBonDeCommande) {
-        console.log("Found existing bon de commande:", existingBonDeCommande);
-        console.log("Existing created_at:", existingBonDeCommande.created_at);
+    if (existingBonDeCommandeBasic) {
+      // Check if article entry already exists (much faster query)
+      const existingArticleEntry =
+        await container.prisma.bonDeCommandeCategory.findFirst({
+          where: {
+            bon_de_commande_id: existingBonDeCommandeBasic.id,
+            article_id: article_id,
+            category_id: category_id,
+          },
+          select: {
+            id: true,
+            quantite_a_stocker: true,
+            quantite_a_demander: true,
+          },
+        });
 
-        // Clean up any existing category-level entries for this category when switching to article-level
-        const categoryLevelEntries = existingBonDeCommande.categories.filter(
-          (cat) => cat.category_id === category_id && !cat.article_id
-        );
+      if (existingArticleEntry) {
+        // Check if quantities have actually changed
+        const quantitiesChanged =
+          existingArticleEntry.quantite_a_stocker !== quantite_a_stocker ||
+          existingArticleEntry.quantite_a_demander !== quantite_a_demander;
 
-        if (categoryLevelEntries.length > 0) {
-          console.log(
-            "Found old category-level entries, cleaning up:",
-            categoryLevelEntries.length
-          );
-          for (const entry of categoryLevelEntries) {
-            await tx.bonDeCommandeCategory.delete({
-              where: { id: entry.id },
-            });
-          }
-        }
-
-        // Look for existing article-level entry
-        let existingArticleEntry: any = null;
-        let shouldUpdate = false;
-
-        // Look for existing article-level entry
-        existingArticleEntry = existingBonDeCommande.categories.find(
-          (cat) =>
-            cat.article_id === article_id && cat.category_id === category_id
-        );
-
-        if (existingArticleEntry) {
-          shouldUpdate = true;
-        }
-
-        if (existingArticleEntry && shouldUpdate) {
-          // Check if quantities have actually changed
-          const quantitiesChanged =
-            existingArticleEntry.quantite_a_stocker !== quantite_a_stocker ||
-            existingArticleEntry.quantite_a_demander !== quantite_a_demander;
-
-          if (quantitiesChanged) {
-            console.log("Updating existing article entry:", {
-              entry_id: existingArticleEntry.id,
-              article_id: article_id,
-              category_id: category_id,
-              old_stocker: existingArticleEntry.quantite_a_stocker,
-              old_demander: existingArticleEntry.quantite_a_demander,
-              new_stocker: quantite_a_stocker,
-              new_demander: quantite_a_demander,
-            });
-
-            // Update the existing article entry
-            await tx.bonDeCommandeCategory.update({
-              where: { id: existingArticleEntry.id },
-              data: {
-                quantite_a_stocker: quantite_a_stocker,
-                quantite_a_demander: quantite_a_demander,
-              },
-            });
-          } else {
-            console.log(
-              "Quantities unchanged, no update needed for article:",
-              article_id
-            );
-          }
-        } else {
-          // Add new article entry (individual article quantities)
-          console.log("Adding new article entry to existing bon de commande:", {
-            article_id,
-            category_id,
-            quantite_a_stocker,
-            quantite_a_demander,
+        if (quantitiesChanged) {
+          console.log("Updating existing article entry:", {
+            entry_id: existingArticleEntry.id,
+            article_id: article_id,
+            category_id: category_id,
+            old_stocker: existingArticleEntry.quantite_a_stocker,
+            old_demander: existingArticleEntry.quantite_a_demander,
+            new_stocker: quantite_a_stocker,
+            new_demander: quantite_a_demander,
           });
 
-          await tx.bonDeCommandeCategory.create({
+          // Update the existing article entry
+          await container.prisma.bonDeCommandeCategory.update({
+            where: { id: existingArticleEntry.id },
             data: {
-              bon_de_commande_id: existingBonDeCommande.id,
-              category_id,
-              article_id: article_id, // Individual article entry
-              quantite_a_stocker,
-              quantite_a_demander,
+              quantite_a_stocker: quantite_a_stocker,
+              quantite_a_demander: quantite_a_demander,
             },
           });
-        }
-
-        // Update the target_date to tomorrow's date
-        await tx.bonDeCommande.update({
-          where: { id: existingBonDeCommande.id },
-          data: {
-            target_date: tomorrow,
-          },
-        });
-
-        // Return the updated bon de commande
-        const updatedBonDeCommande = await tx.bonDeCommande.findUnique({
-          where: { id: existingBonDeCommande.id },
-          include: {
-            employee: {
-              include: {
-                user: true,
-              },
-            },
-            categories: {
-              include: {
-                category: true,
-                article: true,
-              },
-            },
-          },
-        });
-
-        if (updatedBonDeCommande) {
-          console.log(
-            "Updated bon de commande:",
-            JSON.stringify(updatedBonDeCommande, null, 2)
-          );
-
-          // Log the number of categories to help debug
-          console.log(
-            `Bon de commande now has ${updatedBonDeCommande.categories.length} category entries`
-          );
-
-          return { status: 200, data: updatedBonDeCommande };
         } else {
-          throw new Error("Failed to retrieve updated bon de commande");
+          console.log(
+            "Quantities unchanged, no update needed for article:",
+            article_id
+          );
         }
-      }
-
-      console.log("Creating new bon de commande with date:", tomorrow);
-
-      // Create description based on the date
-      const dateDescription = `Bon de commande du ${tomorrow.toLocaleDateString(
-        "fr-FR",
-        {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }
-      )}`;
-
-      // Generate the next code
-      const lastBonDeCommande = await tx.bonDeCommande.findFirst({
-        orderBy: {
-          code: "desc",
-        },
-      });
-
-      let code = "BC-01";
-      if (lastBonDeCommande) {
-        const lastNumber = parseInt(lastBonDeCommande.code.replace("BC-", ""));
-        const nextNumber = lastNumber + 1;
-        code = `BC-${nextNumber.toString().padStart(2, "0")}`;
-      }
-
-      const bonDeCommande = await tx.bonDeCommande.create({
-        data: {
-          code,
-          description: dateDescription,
-          status: "en attente",
-          employee_id: finalEmployeeId,
-          created_at: now, // Use current date for creation timestamp
-          target_date: tomorrow, // Use tomorrow's date for target date
-        },
-      });
-
-      // Create the bon de commande category relationship
-      await tx.bonDeCommandeCategory.create({
-        data: {
-          bon_de_commande_id: bonDeCommande.id,
+      } else {
+        // Add new article entry
+        console.log("Adding new article entry to existing bon de commande:", {
+          article_id,
           category_id,
-          article_id: article_id, // Article-level entry
           quantite_a_stocker,
           quantite_a_demander,
-        },
+        });
+
+        await container.prisma.bonDeCommandeCategory.create({
+          data: {
+            bon_de_commande_id: existingBonDeCommandeBasic.id,
+            category_id,
+            article_id: article_id,
+            quantite_a_stocker,
+            quantite_a_demander,
+          },
+        });
+      }
+
+      // Update target date if needed
+      await container.prisma.bonDeCommande.update({
+        where: { id: existingBonDeCommandeBasic.id },
+        data: { target_date: targetDate },
       });
 
-      // Return the created bon de commande with categories
-      const createdBonDeCommande = await tx.bonDeCommande.findUnique({
-        where: { id: bonDeCommande.id },
-        include: {
-          employee: {
-            include: {
-              user: true,
-            },
-          },
-          categories: {
-            include: {
-              category: true,
-              article: true,
-            },
-          },
-        },
-      });
+      // Send response immediately and return
+      const endTime = Date.now();
+      console.log(`Update operation completed in ${endTime - startTime}ms`);
+      console.log("About to send update response...");
+      clearTimeout(responseTimeout);
+      res
+        .status(200)
+        .json({ id: existingBonDeCommandeBasic.id, updated: true });
+      console.log("Update response sent successfully");
+      return;
+    }
 
-      console.log(
-        "Created bon de commande with date:",
-        createdBonDeCommande?.created_at
-      );
-      console.log(
-        "Created bon de commande full data:",
-        JSON.stringify(createdBonDeCommande, null, 2)
-      );
+    console.log("Creating new bon de commande with date:", targetDate);
 
-      return { status: 201, data: createdBonDeCommande };
+    // Create description based on the date
+    const dateDescription = `Bon de commande du ${targetDate.toLocaleDateString(
+      "fr-FR",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }
+    )}`;
+
+    // Generate the next code
+    const lastBonDeCommande = await container.prisma.bonDeCommande.findFirst({
+      orderBy: {
+        code: "desc",
+      },
     });
 
-    // Return the appropriate response based on the transaction result
-    res.status(result.status).json(result.data);
+    let code = "BC-01";
+    if (lastBonDeCommande) {
+      const lastNumber = parseInt(lastBonDeCommande.code.replace("BC-", ""));
+      const nextNumber = lastNumber + 1;
+      code = `BC-${nextNumber.toString().padStart(2, "0")}`;
+    }
+
+    const bonDeCommande = await container.prisma.bonDeCommande.create({
+      data: {
+        code,
+        description: dateDescription,
+        status: "en attente",
+        employee_id: finalEmployeeId,
+        created_at: now, // Use current date for creation timestamp
+        target_date: targetDate, // Use the target date for target date
+      },
+    });
+
+    // Create the bon de commande category relationship
+    await container.prisma.bonDeCommandeCategory.create({
+      data: {
+        bon_de_commande_id: bonDeCommande.id,
+        category_id,
+        article_id: article_id, // Article-level entry
+        quantite_a_stocker,
+        quantite_a_demander,
+      },
+    });
+
+    // Send response immediately
+    const endTime = Date.now();
+    console.log(`Create operation completed in ${endTime - startTime}ms`);
+    console.log("About to send create response...");
+    clearTimeout(responseTimeout);
+    res.status(201).json({ id: bonDeCommande.id, created: true });
+    console.log("Create response sent successfully");
   } catch (error: any) {
-    console.error("Error creating bon de commande:", error);
+    const endTime = Date.now();
+    console.error(`Error after ${endTime - startTime}ms:`, error);
+    clearTimeout(responseTimeout);
 
     // Provide more specific error messages
     if (error.code === "P2002") {
-      return res
-        .status(400)
-        .json({
-          error:
-            "A bon de commande with this code already exists. Please try again.",
-        });
+      return res.status(400).json({
+        error:
+          "A bon de commande with this code already exists. Please try again.",
+      });
     }
 
     if (error.code === "P2003") {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Invalid reference. Please check that the category and article exist.",
-        });
+      return res.status(400).json({
+        error:
+          "Invalid reference. Please check that the category and article exist.",
+      });
     }
 
     if (error.message) {
       return res.status(400).json({ error: error.message });
     }
 
-    res
-      .status(400)
-      .json({
-        error:
-          "An unexpected error occurred while creating the bon de commande",
-      });
+    res.status(400).json({
+      error: "An unexpected error occurred while creating the bon de commande",
+    });
+  } finally {
+    // Ensure timeout is always cleared
+    clearTimeout(responseTimeout);
   }
 });
 

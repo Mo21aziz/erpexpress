@@ -53,6 +53,7 @@ export interface CreateUserInput {
 export type UpdateUserInput = Partial<CreateUserInput> & {
   currentPassword?: string;
   newPassword?: string;
+  refreshToken?: string;
   assigned_employee_ids?: string[]; // For Gerant role - list of employee IDs to assign
 };
 

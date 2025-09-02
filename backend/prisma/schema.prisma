@@ -8,23 +8,24 @@ datasource db {
 }
 
 model Article {
-  id                  String    @id @default(uuid())
-  name                String
-  description         String?
-  numero              Int?
-  price               Decimal?  @db.Decimal(10, 2)
-  collisage           String
-  type                String    @default("catering") // "catering" or "sonodis"
-  quantite_a_stocker  Int       @default(0)
-  quantite_a_demander Int       @default(0)
-  category_id         String
-  category            Category  @relation(fields: [category_id], references: [id])
+  id                         String                  @id @default(uuid())
+  name                       String
+  description                String?
+  numero                     Int?
+  price                      Decimal?                @db.Decimal(10, 2)
+  collisage                  String
+  type                       String                  @default("catering")
+  category_id                String
+  quantite_a_stocker         Decimal?                @db.Decimal(10, 2)
+  quantite_a_demander        Decimal?                @db.Decimal(10, 2)
+  category                   Category                @relation(fields: [category_id], references: [id])
   bon_de_commande_categories BonDeCommandeCategory[]
-  
+
+  @@index([category_id], map: "Article_category_id_fkey")
 }
 
 model Category {
-  id          String     @id @default(uuid())
+  id          String                  @id @default(uuid())
   name        String
   description String?
   articles    Article[]
@@ -32,57 +33,61 @@ model Category {
 }
 
 model BonDeCommandeCategory {
-  id               String         @id @default(uuid())
-  category_id      String
-  category         Category       @relation(fields: [category_id], references: [id])
-  article_id       String?
-  article          Article?       @relation(fields: [article_id], references: [id])
-  bon_de_commande_id String
-  bon_de_commande  BonDeCommande  @relation(fields: [bon_de_commande_id], references: [id])
-  quantite_a_stocker Int          @default(0)
-  quantite_a_demander Int         @default(0)
+  id                  String        @id @default(uuid())
+  category_id         String
+  article_id          String?
+  bon_de_commande_id  String
+  quantite_a_stocker  Decimal?      @db.Decimal(10, 2) @default(0)
+  quantite_a_demander Decimal?      @db.Decimal(10, 2) @default(0)
+  article             Article?      @relation(fields: [article_id], references: [id])
+  bon_de_commande     BonDeCommande @relation(fields: [bon_de_commande_id], references: [id])
+  category            Category      @relation(fields: [category_id], references: [id])
+
+  @@index([article_id], map: "BonDeCommandeCategory_article_id_fkey")
+  @@index([bon_de_commande_id], map: "BonDeCommandeCategory_bon_de_commande_id_fkey")
+  @@index([category_id], map: "BonDeCommandeCategory_category_id_fkey")
 }
 
 model BonDeCommande {
-  id                  String                    @id @default(uuid())
-  code                String                    @unique
-  created_at          DateTime                 @default(now())
-  target_date         DateTime                 @default(now()) // Date for which the bon de commande is created
-  description         String
-  status              String
-  employee_id         String
-  employee            Employee                 @relation(fields: [employee_id], references: [id])
-  categories          BonDeCommandeCategory[]
+  id          String                  @id @default(uuid())
+  code        String                  @unique
+  created_at  DateTime                @default(now())
+  target_date DateTime                @default(now())
+  description String
+  status      String
+  employee_id String
+  employee    Employee                @relation(fields: [employee_id], references: [id])
+  categories  BonDeCommandeCategory[]
+
+  @@index([employee_id], map: "BonDeCommande_employee_id_fkey")
 }
 
 model Employee {
-  id               String           @id @default(uuid())
-  user_id          String           @unique
-  user             User             @relation(fields: [user_id], references: [id])
-  bons_de_commande BonDeCommande[]
-  
-  // Add relation for Gerant assignments
+  id                 String                     @id @default(uuid())
+  user_id            String                     @unique
+  bons_de_commande   BonDeCommande[]
+  user               User                       @relation(fields: [user_id], references: [id])
   gerant_assignments GerantEmployeeAssignment[]
 }
 
 model User {
-  id           String    @id @default(uuid())
-  username     String
-  email        String    @unique
-  password     String
-  role_id      String
-  role         Role      @relation(fields: [role_id], references: [id])
-  employee     Employee?  
-  admin        Admin?
-  refreshToken String?
-  
-  // Add relation for Gerant assignments
+  id                 String                     @id @default(uuid())
+  username           String
+  email              String                     @unique
+  password           String
+  role_id            String
+  refreshToken       String?
+  admin              Admin?
+  employee           Employee?
   gerant_assignments GerantEmployeeAssignment[] @relation("GerantAssignments")
+  role               Role                       @relation(fields: [role_id], references: [id])
+
+  @@index([role_id], map: "User_role_id_fkey")
 }
 
 model Role {
-  id    String  @id @default(uuid())
-  name  String  @unique
+  id    String @id @default(uuid())
+  name  String @unique
   users User[]
 }
 
@@ -94,13 +99,12 @@ model Admin {
 
 model GerantEmployeeAssignment {
   id          String   @id @default(uuid())
-  gerant_id   String   // User ID of the Gerant
-  employee_id String   // Employee ID that is assigned to the Gerant
+  gerant_id   String
+  employee_id String
   created_at  DateTime @default(now())
-  
-  // Relations
-  gerant      User     @relation("GerantAssignments", fields: [gerant_id], references: [id], onDelete: Cascade)
   employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
-  
+  gerant      User     @relation("GerantAssignments", fields: [gerant_id], references: [id], onDelete: Cascade)
+
   @@unique([gerant_id, employee_id])
+  @@index([employee_id], map: "GerantEmployeeAssignment_employee_id_fkey")
 }

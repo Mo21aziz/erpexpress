@@ -25,7 +25,7 @@ export const UserProfile = ({
     <div className={cn("flex items-center space-x-4", className)}>
       <Avatar className="h-10 w-10">
         {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
-        <AvatarFallback className="bg-gradient-to-r from-green-600 to-red-600 text-white">
+        <AvatarFallback className="p-3 bg-red-500 rounded-lg text-white">
           {initials}
         </AvatarFallback>
       </Avatar>

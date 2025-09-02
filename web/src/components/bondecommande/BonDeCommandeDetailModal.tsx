@@ -27,6 +27,56 @@ import { categories as categoriesApi } from "@/api/categoty";
 import { articles as articlesApi } from "@/api/articles";
 import { validateBonDeCommandeCompleteness } from "@/utils/pdfExport";
 
+// Utility function to validate decimal input - very permissive for typing
+const isValidDecimalInput = (value: string): boolean => {
+  if (value === "") return true;
+
+  // Allow any input that contains only digits, commas, dots, and spaces
+  // This allows the user to type freely while preventing letters and special characters
+  const isValid = /^[0-9.,\s]*$/.test(value);
+  console.log(`Validating "${value}": ${isValid}`);
+  return isValid;
+};
+
+// Utility function to parse decimal input
+const parseDecimalInput = (value: string): number | null => {
+  if (value === "") return null;
+
+  // Clean the input: remove spaces and handle multiple separators
+  let cleanValue = value.trim();
+
+  // If there are multiple dots or commas, keep only the first one
+  const dotIndex = cleanValue.indexOf(".");
+  const commaIndex = cleanValue.indexOf(",");
+
+  if (dotIndex !== -1 && commaIndex !== -1) {
+    // If both exist, keep the first one
+    if (dotIndex < commaIndex) {
+      cleanValue =
+        cleanValue.substring(0, commaIndex) +
+        cleanValue.substring(commaIndex + 1);
+    } else {
+      cleanValue =
+        cleanValue.substring(0, dotIndex) + cleanValue.substring(dotIndex + 1);
+    }
+  }
+
+  // Handle trailing separators - if it ends with . or , and has digits before, treat as valid
+  if (cleanValue.endsWith(".") || cleanValue.endsWith(",")) {
+    const withoutSeparator = cleanValue.slice(0, -1);
+    if (withoutSeparator && /^[0-9]+$/.test(withoutSeparator)) {
+      // This is a valid number with trailing separator (e.g., "5." or "5,")
+      cleanValue = withoutSeparator;
+    }
+  }
+
+  // Replace comma with dot for parsing
+  const numericString = cleanValue.replace(",", ".");
+  const numericValue = parseFloat(numericString);
+
+  return isNaN(numericValue) ? null : numericValue;
+};
+
 interface BonDeCommandeDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,7 +99,7 @@ const hasNullValues = (bonDeCommande: BonDeCommande): boolean => {
   });
 };
 
-// Warning Card Component
+// Warning Card Component for null/zero values
 const WarningCard: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -129,6 +179,55 @@ const WarningCard: React.FC<{
               className="bg-yellow-600 hover:bg-yellow-700 text-white"
             >
               Confirmer quand même
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Confirmed Bon De Commande Warning Card Component
+const ConfirmedWarningCard: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <CardTitle className="text-lg text-red-800">
+              Bon de commande confirmé
+            </CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="ml-auto text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Ce bon de commande a été confirmé et ne peut plus être modifié.
+          </p>
+          <p className="text-sm text-gray-600">
+            Les quantités des articles ne peuvent pas être mises à jour une fois
+            le bon de commande confirmé.
+          </p>
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Compris
             </Button>
           </div>
         </CardContent>
@@ -248,7 +347,10 @@ export const BonDeCommandeDetailModal: React.FC<
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedQuantities, setEditedQuantities] = useState<
-    Record<string, { stock: number; demand: number }>
+    Record<string, { stock: number | null; demand: number | null }>
+  >({});
+  const [displayValues, setDisplayValues] = useState<
+    Record<string, { stock: string; demand: string }>
   >({});
   const [warningCard, setWarningCard] = useState<{
     isOpen: boolean;
@@ -275,6 +377,13 @@ export const BonDeCommandeDetailModal: React.FC<
     missingArticles: [],
   });
 
+  // State for confirmed bon de commande warning
+  const [confirmedWarning, setConfirmedWarning] = useState<{
+    isOpen: boolean;
+  }>({
+    isOpen: false,
+  });
+
   // State for all categories and articles
   const [allCategories, setAllCategories] = useState<any[]>([]);
   const [allArticles, setAllArticles] = useState<any[]>([]);
@@ -286,17 +395,27 @@ export const BonDeCommandeDetailModal: React.FC<
     if (bonDeCommande) {
       const initialQuantities: Record<
         string,
-        { stock: number; demand: number }
+        { stock: number | null; demand: number | null }
+      > = {};
+      const initialDisplayValues: Record<
+        string,
+        { stock: string; demand: string }
       > = {};
       bonDeCommande.categories.forEach((entry) => {
         if (entry.article_id) {
           initialQuantities[entry.id] = {
-            stock: entry.quantite_a_stocker || 0,
-            demand: entry.quantite_a_demander || 0,
+            stock: entry.quantite_a_stocker ?? null,
+            demand: entry.quantite_a_demander ?? null,
+          };
+          initialDisplayValues[entry.id] = {
+            stock: entry.quantite_a_stocker?.toString().replace(".", ",") ?? "",
+            demand:
+              entry.quantite_a_demander?.toString().replace(".", ",") ?? "",
           };
         }
       });
       setEditedQuantities(initialQuantities);
+      setDisplayValues(initialDisplayValues);
     }
   }, [bonDeCommande]);
 
@@ -320,7 +439,7 @@ export const BonDeCommandeDetailModal: React.FC<
   const handleQuantityChange = (
     entryId: string,
     field: "stock" | "demand",
-    value: number
+    value: number | null
   ) => {
     setEditedQuantities((prev) => ({
       ...prev,
@@ -396,6 +515,10 @@ export const BonDeCommandeDetailModal: React.FC<
     window.location.href = "/affectation-ressources";
   };
 
+  const handleCloseConfirmedWarning = () => {
+    setConfirmedWarning({ isOpen: false });
+  };
+
   const handleSave = async () => {
     if (!bonDeCommande) return;
 
@@ -410,8 +533,10 @@ export const BonDeCommandeDetailModal: React.FC<
           if (!entry) return Promise.resolve();
 
           return bonDeCommandeApi.updateBonDeCommandeCategory(entryId, {
-            quantite_a_stocker: quantities.stock,
-            quantite_a_demander: quantities.demand,
+            quantite_a_stocker:
+              quantities.stock === null ? undefined : quantities.stock,
+            quantite_a_demander:
+              quantities.demand === null ? undefined : quantities.demand,
           });
         }
       );
@@ -432,12 +557,21 @@ export const BonDeCommandeDetailModal: React.FC<
         title: "Succès",
         description: "Quantités mises à jour avec succès",
       });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la mise à jour des quantités",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      // Check if the error is about confirmed bon de commande
+      if (
+        error.message &&
+        error.message.includes("confirmed bon de commande")
+      ) {
+        setConfirmedWarning({ isOpen: true });
+        setIsEditing(false);
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la mise à jour des quantités",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -449,17 +583,27 @@ export const BonDeCommandeDetailModal: React.FC<
     if (bonDeCommande) {
       const initialQuantities: Record<
         string,
-        { stock: number; demand: number }
+        { stock: number | null; demand: number | null }
+      > = {};
+      const initialDisplayValues: Record<
+        string,
+        { stock: string; demand: string }
       > = {};
       bonDeCommande.categories.forEach((entry) => {
         if (entry.article_id) {
           initialQuantities[entry.id] = {
-            stock: entry.quantite_a_stocker || 0,
-            demand: entry.quantite_a_demander || 0,
+            stock: entry.quantite_a_stocker ?? null,
+            demand: entry.quantite_a_demander ?? null,
+          };
+          initialDisplayValues[entry.id] = {
+            stock: entry.quantite_a_stocker?.toString().replace(".", ",") ?? "",
+            demand:
+              entry.quantite_a_demander?.toString().replace(".", ",") ?? "",
           };
         }
       });
       setEditedQuantities(initialQuantities);
+      setDisplayValues(initialDisplayValues);
     }
   };
 
@@ -535,7 +679,12 @@ export const BonDeCommandeDetailModal: React.FC<
                   size="sm"
                   onClick={() => setIsEditing(true)}
                   className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                  disabled={loading}
+                  disabled={loading || bonDeCommande.status === "confirmer"}
+                  title={
+                    bonDeCommande.status === "confirmer"
+                      ? "Impossible de modifier un bon de commande confirmé"
+                      : "Modifier les quantités"
+                  }
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Modifier
@@ -577,6 +726,24 @@ export const BonDeCommandeDetailModal: React.FC<
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            {/* Confirmed Status Banner */}
+            {bonDeCommande.status === "confirmer" && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                  <div>
+                    <h3 className="text-sm font-medium text-green-800">
+                      Bon de commande confirmé
+                    </h3>
+                    <p className="text-sm text-green-700 mt-1">
+                      Ce bon de commande a été confirmé et ne peut plus être
+                      modifié.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* General Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-4">
@@ -699,10 +866,10 @@ export const BonDeCommandeDetailModal: React.FC<
                                     Collisage
                                   </th>
                                   <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
-                                    Quantité à stocker
+                                    stock
                                   </th>
                                   <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
-                                    Quantité à demander
+                                    demande
                                   </th>
                                 </tr>
                               </thead>
@@ -734,48 +901,127 @@ export const BonDeCommandeDetailModal: React.FC<
                                       <td className="border border-gray-300 px-4 py-2 text-center">
                                         {isEditing ? (
                                           <Input
-                                            type="number"
-                                            min="0"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={
-                                              editedQuantities[entry.id]
-                                                ?.stock || 0
+                                              displayValues[entry.id]?.stock ??
+                                              ""
                                             }
-                                            onChange={(e) =>
-                                              handleQuantityChange(
-                                                entry.id,
-                                                "stock",
-                                                Number(e.target.value)
-                                              )
+                                            onChange={(e) => {
+                                              const value = e.target.value;
+                                              console.log(
+                                                "Stock input value:",
+                                                value
+                                              );
+
+                                              // Always update the display value
+                                              setDisplayValues((prev) => ({
+                                                ...prev,
+                                                [entry.id]: {
+                                                  ...prev[entry.id],
+                                                  stock: value,
+                                                },
+                                              }));
+
+                                              // Validate decimal input
+                                              if (isValidDecimalInput(value)) {
+                                                console.log(
+                                                  "Stock input is valid"
+                                                );
+                                                const numericValue =
+                                                  parseDecimalInput(value);
+                                                console.log(
+                                                  "Stock parsed value:",
+                                                  numericValue
+                                                );
+                                                handleQuantityChange(
+                                                  entry.id,
+                                                  "stock",
+                                                  numericValue
+                                                );
+                                              } else {
+                                                console.log(
+                                                  "Stock input is invalid"
+                                                );
+                                                // Don't update the parsed value if invalid
+                                              }
+                                            }}
+                                            className="w-16 h-8 text-xs"
+                                            placeholder=""
+                                            disabled={
+                                              bonDeCommande.status ===
+                                              "confirmer"
                                             }
-                                            className="w-20 h-8 text-sm text-center"
                                           />
                                         ) : (
                                           <span className="text-sm font-medium text-green-600">
-                                            {entry.quantite_a_stocker}
+                                            {entry.quantite_a_stocker
+                                              ?.toString()
+                                              .replace(".", ",") ?? ""}
                                           </span>
                                         )}
                                       </td>
+
                                       <td className="border border-gray-300 px-4 py-2 text-center">
                                         {isEditing ? (
                                           <Input
-                                            type="number"
-                                            min="0"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={
-                                              editedQuantities[entry.id]
-                                                ?.demand || 0
+                                              displayValues[entry.id]?.demand ??
+                                              ""
                                             }
-                                            onChange={(e) =>
-                                              handleQuantityChange(
-                                                entry.id,
-                                                "demand",
-                                                Number(e.target.value)
-                                              )
+                                            onChange={(e) => {
+                                              const value = e.target.value;
+                                              console.log(
+                                                "Demand input value:",
+                                                value
+                                              );
+
+                                              // Always update the display value
+                                              setDisplayValues((prev) => ({
+                                                ...prev,
+                                                [entry.id]: {
+                                                  ...prev[entry.id],
+                                                  demand: value,
+                                                },
+                                              }));
+
+                                              // Validate decimal input
+                                              if (isValidDecimalInput(value)) {
+                                                console.log(
+                                                  "Demand input is valid"
+                                                );
+                                                const numericValue =
+                                                  parseDecimalInput(value);
+                                                console.log(
+                                                  "Demand parsed value:",
+                                                  numericValue
+                                                );
+                                                handleQuantityChange(
+                                                  entry.id,
+                                                  "demand",
+                                                  numericValue
+                                                );
+                                              } else {
+                                                console.log(
+                                                  "Demand input is invalid"
+                                                );
+                                                // Don't update the parsed value if invalid
+                                              }
+                                            }}
+                                            className="w-16 h-8 text-xs"
+                                            placeholder=""
+                                            disabled={
+                                              bonDeCommande.status ===
+                                              "confirmer"
                                             }
-                                            className="w-20 h-8 text-sm text-center"
                                           />
                                         ) : (
                                           <span className="text-sm font-medium text-orange-600">
-                                            {entry.quantite_a_demander}
+                                            {entry.quantite_a_demander
+                                              ?.toString()
+                                              .replace(".", ",") ?? ""}
                                           </span>
                                         )}
                                       </td>
@@ -804,7 +1050,6 @@ export const BonDeCommandeDetailModal: React.FC<
         bonDeCommande={warningCard.bonDeCommande!}
       />
 
-      {/* Missing Items Warning Card */}
       <MissingItemsWarningCard
         isOpen={missingItemsWarning.isOpen}
         onClose={handleCloseMissingItemsWarning}
@@ -812,6 +1057,11 @@ export const BonDeCommandeDetailModal: React.FC<
         bonDeCommande={missingItemsWarning.bonDeCommande!}
         missingCategories={missingItemsWarning.missingCategories}
         missingArticles={missingItemsWarning.missingArticles}
+      />
+
+      <ConfirmedWarningCard
+        isOpen={confirmedWarning.isOpen}
+        onClose={handleCloseConfirmedWarning}
       />
     </>
   );
