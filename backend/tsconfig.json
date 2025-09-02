@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "noEmit": true,
+    "noEmit": true,          // ← Keep this: No JS files emitted
     "allowImportingTsExtensions": true,
     "strict": true,
     "esModuleInterop": true,
