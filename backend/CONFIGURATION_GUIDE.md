@@ -23,7 +23,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 ```bash
 # CORS Configuration
 # Comma-separated list of allowed origins
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://erpexpress.onrender.com,https://erpexpress-x7fh.vercel.app,https://erpexpress-x7fh-nh02khwlx-medazizzarrouks-projects.vercel.app
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://erpexpress.onrender.com,https://erpexpress-x7fh.vercel.app,https://erpexpress-x7fh-nh02khwlx-medazizzarrouks-projects.vercel.app,https://erpexpress-x7fh-h5bgu2ljx-medazizzarrouks-projects.vercel.app
 ```
 
 ### Production Configuration
