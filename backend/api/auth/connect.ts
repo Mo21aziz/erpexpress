@@ -10,7 +10,7 @@ router.post("/connect", async (req: Request, res: Response) => {
   console.log("Request method:", req.method);
   console.log("Request body:", req.body);
   console.log("Request headers:", req.headers);
-  
+
   const authService = container.AuthService;
   try {
     const { username, password } = req.body;
