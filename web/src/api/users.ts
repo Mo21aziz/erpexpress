@@ -3,13 +3,13 @@ import api from "./axios";
 
 // Get all users with their roles
 const getUsers = async (): Promise<UserWithRole[]> => {
-  const response = await api.get("/api/users");
+  const response = await api.get("/users");
   return response.data;
 };
 
 // Get all users (for Gerant assignment)
 const getEmployees = async (): Promise<any[]> => {
-  const response = await api.get("/api/users/employees");
+  const response = await api.get("/users/employees");
   return response.data;
 };
 
@@ -29,7 +29,7 @@ const getUser = async (id: string): Promise<User & { role: Role }> => {
 const createUser = async (
   userData: Partial<User> & { assigned_employee_ids?: string[] }
 ): Promise<User> => {
-  const response = await api.post("/api/users", userData);
+  const response = await api.post("/users", userData);
   return response.data;
 };
 

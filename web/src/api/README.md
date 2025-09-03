@@ -30,16 +30,16 @@ All API calls should use the centralized `api` instance from `axios.ts`:
 import api from "./axios";
 
 // GET request
-const response = await api.get("/api/users");
+const response = await api.get("/users");
 
 // POST request
-const response = await api.post("/api/users", userData);
+const response = await api.post("/users", userData);
 
 // PUT request
-const response = await api.put(`/api/users/${id}`, userData);
+const response = await api.put(`/users/${id}`, userData);
 
 // DELETE request
-await api.delete(`/api/users/${id}`);
+await api.delete(`/users/${id}`);
 ```
 
 ### Building full API URLs
@@ -49,8 +49,8 @@ For cases where you need to build a full URL (like in the auth service), use the
 ```typescript
 import { buildApiUrl } from "./config";
 
-const fullUrl = buildApiUrl("/api/auth/connect");
-// Result: "/api/api/auth/connect" (proxied through Vercel)
+const fullUrl = buildApiUrl("/auth/connect");
+// Result: "/api/auth/connect" (proxied through Vercel)
 ```
 
 ### Available Services

@@ -6,7 +6,7 @@ export const articles = {
   // Get all articles
   getArticles: async (): Promise<Article[]> => {
     try {
-      const response = await api.get("/api/articles");
+      const response = await api.get("/articles");
       return response.data;
     } catch (error) {
       console.error("Failed to fetch articles:", error);
@@ -65,7 +65,7 @@ export const articles = {
     category_id: string;
   }): Promise<Article> => {
     try {
-      const response = await api.post("/api/articles", articleData);
+      const response = await api.post("/articles", articleData);
       return response.data;
     } catch (error) {
       console.error("Failed to create article:", error);

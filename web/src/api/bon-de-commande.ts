@@ -69,7 +69,7 @@ export const bonDeCommandeApi = {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await api.post("/api/bon-de-commande", data);
+        const response = await api.post("/bon-de-commande", data);
         return response.data;
       } catch (error) {
         lastError = error;
@@ -100,7 +100,7 @@ export const bonDeCommandeApi = {
   // Get all bon de commande
   getBonDeCommande: async (): Promise<BonDeCommande[]> => {
     try {
-      const response = await api.get("/api/bon-de-commande");
+      const response = await api.get("/bon-de-commande");
       return response.data;
     } catch (error) {
       console.error("Failed to fetch bon de commande:", error);

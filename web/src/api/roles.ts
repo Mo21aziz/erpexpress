@@ -6,7 +6,7 @@ export const roles = {
   // Get all roles
   getRoles: async (): Promise<Role[]> => {
     try {
-      const response = await api.get("/api/roles");
+      const response = await api.get("/roles");
       return response.data;
     } catch (error) {
       console.error("Failed to fetch roles:", error);
@@ -34,7 +34,7 @@ export const roles = {
   // Create new role
   createRole: async (roleData: { name: string }): Promise<Role> => {
     try {
-      const response = await api.post("/api/roles", roleData);
+      const response = await api.post("/roles", roleData);
       return response.data;
     } catch (error) {
       console.error("Failed to create role:", error);

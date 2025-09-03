@@ -6,7 +6,7 @@ export const categories = {
   // Get all categories
   getCategories: async (): Promise<Category[]> => {
     try {
-      const response = await api.get("/api/category");
+      const response = await api.get("/category");
       return response.data;
     } catch (error) {
       console.error("Failed to fetch categories:", error);
@@ -41,7 +41,7 @@ export const categories = {
     description: string;
   }): Promise<Category> => {
     try {
-      const response = await api.post("/api/category/add", categoryData);
+      const response = await api.post("/category/add", categoryData);
       return response.data;
     } catch (error) {
       console.error("Failed to create category:", error);
