@@ -7,8 +7,7 @@ This directory contains the API configuration and services for the ERP Express f
 The API base URL is centrally configured in `config.ts` and can be set via environment variables:
 
 ```typescript
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://erpexpress-1.onrender.com/api";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 ```
 
 ### Environment Variables
@@ -16,7 +15,7 @@ export const API_BASE_URL =
 Create environment files in your `web/` directory:
 
 - **`.env.development`**: `VITE_API_BASE_URL=http://localhost:5000`
-- **`.env.production`**: `VITE_API_BASE_URL=https://erpexpress-1.onrender.com/api`
+- **`.env.production`**: `VITE_API_BASE_URL=/api`
 - **`.env`**: Default fallback
 
 **Note**: This is a Vite project, so use `VITE_` prefix, not `REACT_APP_`.
@@ -51,7 +50,7 @@ For cases where you need to build a full URL (like in the auth service), use the
 import { buildApiUrl } from "./config";
 
 const fullUrl = buildApiUrl("/api/auth/connect");
-// Result: "https://erpexpress-1.onrender.com/api/api/auth/connect"
+// Result: "/api/api/auth/connect" (proxied through Vercel)
 ```
 
 ### Available Services
@@ -77,11 +76,11 @@ The API base URL can be configured via environment variables. To switch between 
 2. **Set the appropriate URL** in each file:
 
    - Development: `VITE_API_BASE_URL=http://localhost:5000`
-   - Production: `VITE_API_BASE_URL=https://erpexpress-1.onrender.com/api`
+   - Production: `VITE_API_BASE_URL=/api`
 
 3. **Restart your dev server** after creating environment files
 
-**Current fallback**: If no environment variable is set, it defaults to `https://erpexpress-1.onrender.com/api`
+**Current fallback**: If no environment variable is set, it defaults to `/api` (proxied through Vercel)
 
 ## Authentication
 
