@@ -1,6 +1,5 @@
 // API Configuration
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://erpexpress-1.onrender.com/api";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Frontend URL for reference
 export const FRONTEND_URL =
