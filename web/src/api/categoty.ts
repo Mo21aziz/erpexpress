@@ -22,7 +22,7 @@ export const categories = {
   // Get single category by ID
   getCategory: async (id: string): Promise<Category> => {
     try {
-      const response = await api.get(`/api/category/${id}`);
+      const response = await api.get(`/category/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch category ${id}:`, error);
@@ -60,7 +60,7 @@ export const categories = {
     categoryData: { name: string; description: string }
   ): Promise<Category> => {
     try {
-      const response = await api.put(`/api/category/${id}`, categoryData);
+      const response = await api.put(`/category/${id}`, categoryData);
       return response.data;
     } catch (error) {
       console.error(`Failed to update category ${id}:`, error);
@@ -80,8 +80,8 @@ export const categories = {
   ): Promise<void> => {
     try {
       const url = cascade
-        ? `/api/category/${id}?cascade=true`
-        : `/api/category/${id}`;
+        ? `/category/${id}?cascade=true`
+        : `/category/${id}`;
       await api.delete(url);
     } catch (error) {
       console.error(`Failed to delete category ${id}:`, error);

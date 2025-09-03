@@ -20,7 +20,7 @@ export const roles = {
   // Get single role by ID
   getRole: async (id: string): Promise<Role> => {
     try {
-      const response = await api.get(`/api/roles/${id}`);
+      const response = await api.get(`/roles/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch role ${id}:`, error);
@@ -48,7 +48,7 @@ export const roles = {
   // Update role
   updateRole: async (id: string, roleData: { name: string }): Promise<Role> => {
     try {
-      const response = await api.put(`/api/roles/${id}`, roleData);
+      const response = await api.put(`/roles/${id}`, roleData);
       return response.data;
     } catch (error) {
       console.error(`Failed to update role ${id}:`, error);
@@ -62,7 +62,7 @@ export const roles = {
   // Delete role
   deleteRole: async (id: string): Promise<void> => {
     try {
-      await api.delete(`/api/roles/${id}`);
+      await api.delete(`/roles/${id}`);
     } catch (error) {
       console.error(`Failed to delete role ${id}:`, error);
       if (error instanceof AxiosError) {

@@ -22,7 +22,7 @@ export const articles = {
   // Get articles by category
   getArticlesByCategory: async (categoryId: string): Promise<Article[]> => {
     try {
-      const response = await api.get(`/api/articles/by-category/${categoryId}`);
+      const response = await api.get(`/articles/by-category/${categoryId}`);
       return response.data;
     } catch (error) {
       console.error(
@@ -41,7 +41,7 @@ export const articles = {
   // Get single article by ID
   getArticle: async (id: string): Promise<Article> => {
     try {
-      const response = await api.get(`/api/articles/${id}`);
+      const response = await api.get(`/articles/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch article ${id}:`, error);
@@ -94,7 +94,7 @@ export const articles = {
     }
   ): Promise<Article> => {
     try {
-      const response = await api.put(`/api/articles/${id}`, articleData);
+      const response = await api.put(`/articles/${id}`, articleData);
       return response.data;
     } catch (error) {
       console.error(`Failed to update article ${id}:`, error);
@@ -110,7 +110,7 @@ export const articles = {
   // Delete article
   deleteArticle: async (id: string): Promise<void> => {
     try {
-      await api.delete(`/api/articles/${id}`);
+      await api.delete(`/articles/${id}`);
     } catch (error) {
       console.error(`Failed to delete article ${id}:`, error);
       if (error instanceof AxiosError) {
