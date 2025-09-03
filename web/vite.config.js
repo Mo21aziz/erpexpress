@@ -11,7 +11,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:5000',
+      "/api": "http://localhost:5000",
+    },
+  },
+  // Ensure production builds don't use development proxy
+  build: {
+    rollupOptions: {
+      external: ["http://localhost:5000"],
     },
   },
 });
