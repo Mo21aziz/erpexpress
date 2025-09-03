@@ -22,7 +22,7 @@ export const getAllowedOrigins = (): string[] => {
     "https://erpexpress.vercel.app", // Your Vercel frontend
     "https://erpexpress-1.onrender.com", // Your Render backend (for direct access)
     "https://erpexpress-cngvk2cg1-medazizzarrouks-projects.vercel.app", // Current Vercel deployment
-    "https://erpexpress-ak1rjsbhm-medazizzarrouks-projects.vercel.app"// Vercel preview
+    "https://erpexpress-ak1rjsbhm-medazizzarrouks-projects.vercel.app", // Vercel preview
   ];
 };
 
