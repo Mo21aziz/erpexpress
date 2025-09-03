@@ -116,7 +116,7 @@ export const bonDeCommandeApi = {
   // Get bon de commande by ID
   getBonDeCommandeById: async (id: string): Promise<BonDeCommande> => {
     try {
-      const response = await api.get(`/api/bon-de-commande/${id}`);
+      const response = await api.get(`/bon-de-commande/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch bon de commande ${id}:`, error);
@@ -135,7 +135,7 @@ export const bonDeCommandeApi = {
     data: Partial<CreateBonDeCommandeData>
   ): Promise<BonDeCommande> => {
     try {
-      const response = await api.put(`/api/bon-de-commande/${id}`, data);
+      const response = await api.put(`/bon-de-commande/${id}`, data);
       return response.data;
     } catch (error) {
       console.error(`Failed to update bon de commande ${id}:`, error);
@@ -151,7 +151,7 @@ export const bonDeCommandeApi = {
   // Update bon de commande status
   updateStatus: async (id: string, status: string): Promise<BonDeCommande> => {
     try {
-      const response = await api.put(`/api/bon-de-commande/${id}/status`, {
+      const response = await api.put(`/bon-de-commande/${id}/status`, {
         status,
       });
       return response.data;
@@ -176,7 +176,7 @@ export const bonDeCommandeApi = {
   ): Promise<any> => {
     try {
       const response = await api.put(
-        `/api/bon-de-commande/category/${categoryId}`,
+        `/bon-de-commande/category/${categoryId}`,
         data
       );
       return response.data;
@@ -194,7 +194,7 @@ export const bonDeCommandeApi = {
   // Delete bon de commande
   deleteBonDeCommande: async (id: string): Promise<void> => {
     try {
-      await api.delete(`/api/bon-de-commande/${id}`);
+      await api.delete(`/bon-de-commande/${id}`);
     } catch (error) {
       console.error(`Failed to delete bon de commande ${id}:`, error);
       if (error instanceof AxiosError) {

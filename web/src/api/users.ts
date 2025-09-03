@@ -15,13 +15,13 @@ const getEmployees = async (): Promise<any[]> => {
 
 // Get Gerant's assigned employees
 const getGerantAssignedEmployees = async (gerantId: string): Promise<any[]> => {
-  const response = await api.get(`/api/users/gerant/${gerantId}/employees`);
+  const response = await api.get(`/users/gerant/${gerantId}/employees`);
   return response.data;
 };
 
 // Get a single user by ID
 const getUser = async (id: string): Promise<User & { role: Role }> => {
-  const response = await api.get(`/api/users/${id}`);
+  const response = await api.get(`/users/${id}`);
   return response.data;
 };
 
@@ -38,13 +38,13 @@ const updateUser = async (
   id: string,
   userData: Partial<User> & { assigned_employee_ids?: string[] }
 ): Promise<User> => {
-  const response = await api.put(`/api/users/${id}`, userData);
+  const response = await api.put(`/users/${id}`, userData);
   return response.data;
 };
 
 // Delete a user
 const deleteUser = async (id: string): Promise<void> => {
-  await api.delete(`/api/users/${id}`);
+  await api.delete(`/users/${id}`);
 };
 
 export const users = {
