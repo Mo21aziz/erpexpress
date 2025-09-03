@@ -23,12 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     Array.isArray(path) ? path.join("/") : path
   }`;
 
-  console.log(`Proxying request to: ${targetUrl}`);
+  console.log(`Proxying ${req.method} request to: ${targetUrl}`);
+  console.log(`Request body:`, req.body);
 
   try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+    const headers: Record<string, string> = {};
 
     // Forward important headers
     if (req.headers.authorization) {
@@ -37,14 +36,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.headers["x-requested-with"]) {
       headers["X-Requested-With"] = req.headers["x-requested-with"] as string;
     }
+    if (req.headers["content-type"]) {
+      headers["Content-Type"] = req.headers["content-type"] as string;
+    }
+
+    // Prepare request body
+    let requestBody: string | undefined;
+    if (req.method !== "GET" && req.method !== "HEAD" && req.body) {
+      requestBody = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+    }
 
     const response = await fetch(targetUrl, {
       method: req.method,
       headers,
-      body:
-        req.method !== "GET" && req.method !== "HEAD" && req.body
-          ? JSON.stringify(req.body)
-          : undefined,
+      body: requestBody,
     });
 
     const contentType = response.headers.get("content-type");

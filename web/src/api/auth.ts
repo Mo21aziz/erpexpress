@@ -5,8 +5,8 @@ import { buildApiUrl } from "./config";
 
 const connect = async (payload: ConnectPayload) => {
   console.log("Sending auth request:", payload);
-  // Use regular axios for auth requests to avoid token interceptor
-  const response = await axios.post(buildApiUrl("/auth/connect"), payload);
+  // Use the configured api instance with proper base URL
+  const response = await api.post("/auth/connect", payload);
   console.log("Auth response:", response.data);
   // Backend returns { message, code, data } but we need just the data
   return response.data.data;
