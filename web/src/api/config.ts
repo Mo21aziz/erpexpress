@@ -2,8 +2,7 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Frontend URL for reference
-export const FRONTEND_URL =
-  "https://erpexpress-x7fh-nh02khwlx-medazizzarrouks-projects.vercel.app";
+export const FRONTEND_URL = "https://erpexpress.vercel.app";
 
 // Helper function to build full API URLs
 export const buildApiUrl = (endpoint: string): string => {
