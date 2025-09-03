@@ -19,7 +19,8 @@ export const getAllowedOrigins = (): string[] => {
     "http://localhost:5000", // Backend dev server
 
     // Production origins
-    "https://erpexpress.vercel.app", // Main Vercel deployment
+    "https://erpexpress.vercel.app", // Your Vercel frontend
+    "https://erpexpress-1.onrender.com", // Your Render backend (for direct access)
     "https://erpexpress-qk8u3onoh-medazizzarrouks-projects.vercel.app", // Vercel preview
   ];
 };
@@ -38,7 +39,7 @@ export const corsConfig: CorsOptions = {
 
     // Allow Vercel preview URLs for this project (erpexpress-x7fh-*)
     const vercelPreviewPattern =
-      /^https?:\/\/erpexpress-x7fh-[a-z0-9-]+\.vercel\.app$/;
+      /^https?:\/\/erpexpress-[a-z0-9-]+\.vercel\.app$/;
 
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
