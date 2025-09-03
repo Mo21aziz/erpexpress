@@ -36,6 +36,16 @@ app.use((req: Request, res: Response, next) => {
       req.headers.origin || "No origin"
     }`
   );
+  
+  // Special logging for auth requests
+  if (req.path.includes('/auth/connect')) {
+    console.log('AUTH CONNECT REQUEST:', {
+      method: req.method,
+      path: req.path,
+      headers: req.headers,
+      body: req.body
+    });
+  }
 
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {

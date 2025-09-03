@@ -6,6 +6,11 @@ import AppConfig from "../../lib/config/app.config";
 const router = express.Router();
 
 router.post("/connect", async (req: Request, res: Response) => {
+  console.log("=== AUTH CONNECT ROUTE HIT ===");
+  console.log("Request method:", req.method);
+  console.log("Request body:", req.body);
+  console.log("Request headers:", req.headers);
+  
   const authService = container.AuthService;
   try {
     const { username, password } = req.body;
