@@ -17,14 +17,14 @@ VITE_API_BASE_URL=http://localhost:5000
 #### `.env.production` (for production)
 
 ```
-VITE_API_BASE_URL=https://erpexpress-1.onrender.com/api
+VITE_API_BASE_URL=/api
 VITE_FRONTEND_URL=https://erpexpress.vercel.app
 ```
 
 #### `.env` (default, will be used if no specific environment file exists)
 
 ```
-VITE_API_BASE_URL=https://erpexpress-1.onrender.com/api
+VITE_API_BASE_URL=/api
 ```
 
 ### 2. How It Works
@@ -58,10 +58,10 @@ Your `web/src/api/config.ts` is already set up to use:
 
 ```typescript
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://erpexpress-1.onrender.com/api";
+  import.meta.env.VITE_API_BASE_URL || "/api";
 ```
 
 This means:
 
 - If `VITE_API_BASE_URL` is set in your environment file, it will use that
-- If not set, it will fall back to `https://erpexpress-1.onrender.com/api`
+- If not set, it will fall back to `/api` (uses Vercel proxy)
