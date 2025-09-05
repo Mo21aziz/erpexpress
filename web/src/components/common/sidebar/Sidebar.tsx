@@ -15,6 +15,7 @@ import {
   LogOut,
   User,
   Shield,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -68,7 +69,8 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   // Check if user is admin
   const userIsAdmin = user && user.role ? isAdmin(user.role.name) : false;
   // Check if user can access gerant pages
-  const userCanAccessGerantPages = user && user.role ? canAccessGerantPages(user.role.name) : false;
+  const userCanAccessGerantPages =
+    user && user.role ? canAccessGerantPages(user.role.name) : false;
 
   // Debug logging
   console.log("User:", user);
@@ -162,44 +164,50 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               )}
             </div>
 
-            
-
             {userIsAdmin && (
-              <div className="space-y-2">
-                <div
-                  onClick={toggleUsersMenu}
-                  className={cn(
-                    "flex items-center justify-between p-3 rounded-lg cursor-pointer",
-                    "hover:bg-green-100/80 text-black hover:text-green-800",
-                    "select-none border border-transparent hover:border-green-200 transition-all duration-200"
-                  )}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Users className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">User Management</span>
+              <>
+                <SidebarItem
+                  icon={<Package className="h-5 w-5" />}
+                  label="Articles"
+                  href="/articles"
+                />
+
+                <div className="space-y-2">
+                  <div
+                    onClick={toggleUsersMenu}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-lg cursor-pointer",
+                      "hover:bg-green-100/80 text-black hover:text-green-800",
+                      "select-none border border-transparent hover:border-green-200 transition-all duration-200"
+                    )}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Users className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">User Management</span>
+                    </div>
+                    {usersOpen ? (
+                      <ChevronDown className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-green-600" />
+                    )}
                   </div>
-                  {usersOpen ? (
-                    <ChevronDown className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-green-600" />
+
+                  {usersOpen && (
+                    <div className="pl-8 space-y-2 bg-green-50/50 rounded-lg p-2 border-l-2 border-green-200">
+                      <SidebarItem
+                        icon={<User className="h-4 w-4" />}
+                        label="Utilisateur"
+                        href="/user-management/users"
+                      />
+                      <SidebarItem
+                        icon={<Shield className="h-4 w-4" />}
+                        label="Role"
+                        href="/user-management/roles"
+                      />
+                    </div>
                   )}
                 </div>
-
-                {usersOpen && (
-                  <div className="pl-8 space-y-2 bg-green-50/50 rounded-lg p-2 border-l-2 border-green-200">
-                    <SidebarItem
-                      icon={<User className="h-4 w-4" />}
-                      label="Utilisateur"
-                      href="/user-management/users"
-                    />
-                    <SidebarItem
-                      icon={<Shield className="h-4 w-4" />}
-                      label="Role"
-                      href="/user-management/roles"
-                    />
-                  </div>
-                )}
-              </div>
+              </>
             )}
           </div>
         </>
@@ -230,15 +238,25 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </Link>
             </div>
           )}
-          
+
           {userIsAdmin && (
-            <button
-              onClick={toggleUsersMenu}
-              className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-              title="User Management"
-            >
-              <Users className="h-5 w-5" />
-            </button>
+            <>
+              <Link
+                to="/articles"
+                className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+                title="Articles"
+              >
+                <Package className="h-5 w-5" />
+              </Link>
+
+              <button
+                onClick={toggleUsersMenu}
+                className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+                title="User Management"
+              >
+                <Users className="h-5 w-5" />
+              </button>
+            </>
           )}
           {userIsAdmin && usersOpen && (
             <div className="flex flex-col items-center space-y-2">

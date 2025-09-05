@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { NullValuesWarningCard } from "@/components/affectation-ressources/NullValuesWarningCard";
 
 interface CategoryArticlesModalProps {
   isOpen: boolean;
@@ -34,6 +35,9 @@ export function CategoryArticlesModal({
   category,
   selectedDate,
 }: CategoryArticlesModalProps) {
+  // Early return if category is null
+  if (!isOpen || !category) return null;
+
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,9 +57,14 @@ export function CategoryArticlesModal({
   const canManageArticles =
     user && user.role ? canAccessAdminPages(user.role.name) : false;
 
-  const fetchLastBonDeCommandeValues = async () => {
-    if (!category) return;
+  // Add state for null values warning
+  const [nullValuesWarning, setNullValuesWarning] = useState({
+    isOpen: false,
+    nullCategories: [] as Array<{id: string; name: string; stock: number | null; demand: number | null}>,
+    targetDate: "",
+  });
 
+  const fetchLastBonDeCommandeValues = async () => {
     try {
       // Use selected date or default to tomorrow
       const targetDate =
@@ -115,8 +124,6 @@ export function CategoryArticlesModal({
   };
 
   const fetchArticles = async () => {
-    if (!category) return;
-
     setLoading(true);
     try {
       const data = await articlesApi.getArticlesByCategory(category.id);
@@ -143,14 +150,14 @@ export function CategoryArticlesModal({
   };
 
   useEffect(() => {
-    if (isOpen && category) {
+    if (isOpen) {
       fetchArticles();
     }
-  }, [isOpen, category]);
+  }, [isOpen]);
 
   // Refetch bon de commande status when selectedDate changes
   useEffect(() => {
-    if (isOpen && category && selectedDate) {
+    if (isOpen && selectedDate) {
       fetchLastBonDeCommandeValues();
     }
   }, [selectedDate]);
@@ -208,7 +215,6 @@ export function CategoryArticlesModal({
     field: "quantite_a_stocker" | "quantite_a_demander",
     value: number
   ) => {
-    console.log(`Quantity change for article ${articleId}:`, { field, value });
     // Update your state accordingly
     setArticles((prev) =>
       prev.map((article) =>
@@ -218,15 +224,13 @@ export function CategoryArticlesModal({
   };
 
   const handleValidate = async () => {
-    if (isSubmitting) return; // Prevent multiple simultaneous requests
-    if (!category) return; // Early return if category is null
+    if (isSubmitting) return;
 
     // Check if date is selected
     if (!selectedDate) {
       toast({
         title: "❌ Date requise",
-        description:
-          "Veuillez sélectionner une date avant de valider les quantités.",
+        description: "Veuillez sélectionner une date avant de valider les quantités.",
         variant: "destructive",
       });
       return;
@@ -235,13 +239,45 @@ export function CategoryArticlesModal({
     if (hasConfirmedBonDeCommande) {
       toast({
         title: "❌ Erreur",
-        description:
-          "Impossible de modifier les quantités car le bon de commande est déjà confirmé.",
+        description: "Impossible de modifier les quantités car le bon de commande est déjà confirmé.",
         variant: "destructive",
       });
       return;
     }
 
+    // Check for null/zero values before proceeding
+    const nullCategories = articles.filter(article => {
+      const stock = Number(article.quantite_a_stocker);
+      const demand = Number(article.quantite_a_demander);
+      
+      const hasInvalidStock = isNaN(stock) || article.quantite_a_stocker === null || article.quantite_a_stocker === undefined;
+      const hasZeroStock = stock === 0;
+      const hasInvalidDemand = isNaN(demand) || article.quantite_a_demander === null || article.quantite_a_demander === undefined;
+      const hasZeroDemand = demand === 0;
+      
+      return hasInvalidStock || hasZeroStock || hasInvalidDemand || hasZeroDemand;
+    }).map(article => ({
+      id: article.id,
+      name: article.name,
+      stock: article.quantite_a_stocker,
+      demand: article.quantite_a_demander
+    }));
+
+    if (nullCategories.length > 0) {
+      setNullValuesWarning({
+        isOpen: true,
+        nullCategories,
+        targetDate: selectedDate
+      });
+      return; // Stop here and show warning
+    }
+
+    // If no null values, proceed with validation
+    await proceedWithValidation();
+  };
+
+  // Separate function for the actual validation logic
+  const proceedWithValidation = async () => {
     setIsSubmitting(true);
     setError(null);
 
@@ -259,8 +295,7 @@ export function CategoryArticlesModal({
       if (articlesToUpdate.length === 0) {
         toast({
           title: "⚠️ Attention",
-          description:
-            "Aucun article avec des quantités définies à mettre à jour.",
+          description: "Aucun article avec des quantités définies à mettre à jour.",
           variant: "destructive",
         });
         return;
@@ -287,13 +322,6 @@ export function CategoryArticlesModal({
       const promises = articlesToUpdate.map(async (article) => {
         const stock = Number(article.quantite_a_stocker ?? 0);
         const demand = Number(article.quantite_a_demander ?? 0);
-
-        console.log(`Sending data for ${article.name}:`, {
-          article_id: article.id,
-          category_id: category.id,
-          stock: stock,
-          demand: demand,
-        });
 
         return bonDeCommandeApi.createBonDeCommande({
           description: `Bon de commande du ${targetDateFormatted}`,
@@ -328,16 +356,14 @@ export function CategoryArticlesModal({
     } catch (err: unknown) {
       let message =
         err instanceof AxiosError
-          ? err.response?.data?.error ||
-            "Failed to create/update bon de commande"
+          ? err.response?.data?.error || "Failed to create/update bon de commande"
           : err instanceof Error
           ? err.message
           : "Failed to create/update bon de commande";
 
       // Check if the error is about confirmed bon de commande
       if (message.includes("confirmed bon de commande")) {
-        message =
-          "Impossible de modifier les quantités car le bon de commande est déjà confirmé.";
+        message = "Impossible de modifier les quantités car le bon de commande est déjà confirmé.";
       }
 
       // Check for timeout error
@@ -355,8 +381,6 @@ export function CategoryArticlesModal({
       setIsSubmitting(false);
     }
   };
-
-  if (!isOpen || !category) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -548,13 +572,25 @@ export function CategoryArticlesModal({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteArticle}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:red-700 text-white"
             >
               Delete Article
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Null Values Warning Card */}
+      <NullValuesWarningCard
+        isOpen={nullValuesWarning.isOpen}
+        onClose={() => setNullValuesWarning(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={async () => {
+          setNullValuesWarning(prev => ({ ...prev, isOpen: false }));
+          await proceedWithValidation();
+        }}
+        bonDeCommandeCode={`${category.name} - ${nullValuesWarning.targetDate}`}
+        nullCategories={nullValuesWarning.nullCategories}
+      />
     </div>
   );
 }

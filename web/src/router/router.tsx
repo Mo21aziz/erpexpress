@@ -8,6 +8,7 @@ import { ListesBonnesCommandePage } from "@/pages/command/ListesBonnesCommandePa
 import { UserManagementPage } from "@/pages/user-management/UserManagementPage";
 import { UsersPage } from "@/pages/user-management/UsersPage";
 import { RolesPage } from "@/pages/user-management/RolesPage";
+import { ArticlesListPage } from "@/pages/ArticlesListPage";
 import { ProtectedRoute } from "@/components/Auth/ProtectedRoute";
 import { RoleBasedRoute } from "@/components/Auth/RoleBasedRoute";
 import { SigninRedirect } from "@/components/Auth/SigninRedirect";
@@ -44,6 +45,14 @@ export const router = createBrowserRouter([
       {
         path: "listes-bonnes-commande",
         element: <ListesBonnesCommandePage />,
+      },
+      {
+        path: "articles",
+        element: (
+          <RoleBasedRoute allowedRoles={["Admin", "Responsible"]}>
+            <ArticlesListPage />
+          </RoleBasedRoute>
+        ),
       },
       {
         path: "user-management",

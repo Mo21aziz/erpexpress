@@ -31,7 +31,7 @@ export interface Article {
   id: string;
   name: string;
   description?: string;
-  price: number | null;
+  price: number | null | any; // Handle Decimal from Prisma
   collisage: string;
   type: string; // "catering" or "sonodis"
   numero?: number;
