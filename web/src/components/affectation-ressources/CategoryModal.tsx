@@ -77,8 +77,6 @@ export function CategoryModal({
             />
           </div>
 
-
-
           <div className="flex items-center justify-end space-x-2 pt-4">
             <Button type="button" variant="ghost" onClick={onClose}>
               Annuler

@@ -36,14 +36,14 @@ app.use((req: Request, res: Response, next) => {
       req.headers.origin || "No origin"
     }`
   );
-  
+
   // Special logging for auth requests
-  if (req.path.includes('/auth/connect')) {
-    console.log('AUTH CONNECT REQUEST:', {
+  if (req.path.includes("/auth/connect")) {
+    console.log("AUTH CONNECT REQUEST:", {
       method: req.method,
       path: req.path,
       headers: req.headers,
-      body: req.body
+      body: req.body,
     });
   }
 
@@ -247,11 +247,11 @@ app.get("/api/cors-debug", (req: Request, res: Response) => {
   });
 });
 
-app.use("/api/auth", connect);
-app.use("/api/category", categoryRouter);
-app.use("/api/articles", articleRouter);
-app.use("/api/orders", orderRouter);
-app.use("/api/bon-de-commande", bonDeCommandeRouter);
+app.use("/auth", connect);
+app.use("/category", categoryRouter);
+app.use("/articles", articleRouter);
+app.use("/orders", orderRouter);
+app.use("/bon-de-commande", bonDeCommandeRouter);
 
 const isExpressRouter = (router: any) =>
   router &&
@@ -260,10 +260,10 @@ const isExpressRouter = (router: any) =>
   Array.isArray(router.stack);
 
 if (isExpressRouter(userRouter)) {
-  app.use("/api/users", userRouter);
+  app.use("/users", userRouter);
 }
 if (isExpressRouter(roleRouter)) {
-  app.use("/api/roles", roleRouter);
+  app.use("/roles", roleRouter);
 }
 
 app.use((req: Request, res: Response) => {

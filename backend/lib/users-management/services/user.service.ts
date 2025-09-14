@@ -258,7 +258,94 @@ export class UserService {
   }
 
   async deleteUser(id: string): Promise<User> {
-    return this.userRepository.delete(id);
+    console.log("UserService.deleteUser called with ID:", id); // Debug log
+
+    return await this.prisma.$transaction(async (tx) => {
+      // First, get the user to check what related records exist
+      const user = await tx.user.findUnique({
+        where: { id },
+        include: {
+          employee: true,
+          admin: true,
+          gerant_assignments: true,
+        },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      console.log("User to delete:", user); // Debug log
+
+      // Delete related records in the correct order
+
+      // 1. Delete GerantEmployeeAssignment records (if user is a Gerant)
+      if (user.gerant_assignments && user.gerant_assignments.length > 0) {
+        console.log(
+          "Deleting GerantEmployeeAssignment records:",
+          user.gerant_assignments.length
+        );
+        await tx.gerantEmployeeAssignment.deleteMany({
+          where: { gerant_id: id },
+        });
+      }
+
+      // 2. Delete BonDeCommandeCategory records first (if user has employee record)
+      if (user.employee) {
+        console.log("Deleting BonDeCommandeCategory records for employee");
+        // First get all bon de commandes for this employee
+        const bonDeCommandes = await tx.bonDeCommande.findMany({
+          where: { employee_id: user.employee.id },
+          select: { id: true },
+        });
+
+        if (bonDeCommandes.length > 0) {
+          const bonDeCommandeIds = bonDeCommandes.map((bdc) => bdc.id);
+          console.log("Found BonDeCommande IDs:", bonDeCommandeIds);
+
+          // Delete BonDeCommandeCategory records that reference these bon de commandes
+          await tx.bonDeCommandeCategory.deleteMany({
+            where: { bon_de_commande_id: { in: bonDeCommandeIds } },
+          });
+        }
+      }
+
+      // 3. Delete BonDeCommande records (if user has employee record)
+      if (user.employee) {
+        console.log("Deleting BonDeCommande records for employee");
+        await tx.bonDeCommande.deleteMany({
+          where: { employee_id: user.employee.id },
+        });
+      }
+
+      // 4. Delete Employee record (if exists)
+      if (user.employee) {
+        console.log("Deleting Employee record");
+        await tx.employee.delete({
+          where: { id: user.employee.id },
+        });
+      }
+
+      // 5. Delete Admin record (if exists)
+      if (user.admin) {
+        console.log("Deleting Admin record");
+        await tx.admin.delete({
+          where: { id: user.admin.id },
+        });
+      }
+
+      // 6. Finally, delete the User record
+      console.log("Deleting User record");
+      const deletedUser = await tx.user.delete({
+        where: { id },
+        include: {
+          role: true,
+        },
+      });
+
+      console.log("User deleted successfully:", deletedUser);
+      return deletedUser;
+    });
   }
 
   async getUserWithRole(userId: string): Promise<UserWithRole | null> {

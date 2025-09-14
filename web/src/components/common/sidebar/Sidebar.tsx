@@ -92,7 +92,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
         "h-full",
         "bg-gradient-to-b from-white via-green-50 to-red-50",
         "border-r-2 border-green-200",
-        "flex flex-col space-y-6 p-4",
+        "flex flex-col",
         "transition-all duration-300 ease-in-out",
         "z-50 shadow-lg",
         // Desktop: always visible, width changes
@@ -104,30 +104,36 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       )}
       style={{ minHeight: "100vh" }}
     >
-      {/* Desktop toggle button */}
-      <button
-        onClick={toggleSidebar}
-        className="hidden md:flex items-center justify-center w-full p-3 rounded-lg hover:bg-green-100 text-green-600 transition-colors mb-4"
-      >
+      {/* Fixed Header Section */}
+      <div className="flex-shrink-0 p-4 space-y-4">
+        {/* Desktop toggle button */}
+        <button
+          onClick={toggleSidebar}
+          className="hidden md:flex items-center justify-center w-full p-3 rounded-lg hover:bg-green-100 text-green-600 transition-colors"
+        >
+          {isOpen ? (
+            <PanelLeftClose className="h-5 w-5" />
+          ) : (
+            <PanelLeftOpen className="h-5 w-5" />
+          )}
+        </button>
+
+        {/* Mobile close button */}
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden absolute top-4 right-4 p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Logo/Header - Fixed */}
+        {isOpen && <SidebarHeader />}
+      </div>
+
+      {/* Scrollable Content Section */}
+      <div className="flex-1 overflow-y-auto px-4">
         {isOpen ? (
-          <PanelLeftClose className="h-5 w-5" />
-        ) : (
-          <PanelLeftOpen className="h-5 w-5" />
-        )}
-      </button>
-
-      {/* Mobile close button */}
-      <button
-        onClick={toggleSidebar}
-        className="md:hidden absolute top-4 right-4 p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors"
-      >
-        <X className="h-5 w-5" />
-      </button>
-
-      {isOpen ? (
-        <>
-          <SidebarHeader />
-          <div className="flex-1 space-y-3 mt-6">
+          <div className="space-y-3">
             <div className="space-y-2">
               <div
                 onClick={toggleCommandMenu}
@@ -210,114 +216,116 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </>
             )}
           </div>
-        </>
-      ) : (
-        <div className="flex-1 flex flex-col items-center pt-12 space-y-4">
-          <button
-            onClick={toggleCommandMenu}
-            className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-            title="Bon de commande"
-          >
-            <FileText className="h-5 w-5" />
-          </button>
-          {commandOpen && (
-            <div className="flex flex-col items-center space-y-2">
-              <Link
-                to="/affectation-ressources"
-                className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
-                title="Affectation des ressources"
-              >
-                <Settings className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/listes-bonnes-commande"
-                className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
-                title="Listes des bonnes de commande"
-              >
-                <List className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
+        ) : (
+          <div className="flex flex-col items-center pt-12 space-y-4">
+            <button
+              onClick={toggleCommandMenu}
+              className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+              title="Bon de commande"
+            >
+              <FileText className="h-5 w-5" />
+            </button>
+            {commandOpen && (
+              <div className="flex flex-col items-center space-y-2">
+                <Link
+                  to="/affectation-ressources"
+                  className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                  title="Affectation des ressources"
+                >
+                  <Settings className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/listes-bonnes-commande"
+                  className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                  title="Listes des bonnes de commande"
+                >
+                  <List className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
 
-          {userIsAdmin && (
-            <>
-              <Link
-                to="/articles"
-                className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-                title="Articles"
-              >
-                <Package className="h-5 w-5" />
-              </Link>
+            {userIsAdmin && (
+              <>
+                <Link
+                  to="/articles"
+                  className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+                  title="Articles"
+                >
+                  <Package className="h-5 w-5" />
+                </Link>
 
-              <button
-                onClick={toggleUsersMenu}
-                className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
-                title="User Management"
-              >
-                <Users className="h-5 w-5" />
-              </button>
-            </>
-          )}
-          {userIsAdmin && usersOpen && (
-            <div className="flex flex-col items-center space-y-2">
-              <Link
-                to="/user-management/users"
-                className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
-                title="Utilisateur"
-              >
-                <User className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/user-management/roles"
-                className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
-                title="Role"
-              >
-                <Shield className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Disconnect Button and Italian Flag - Different for open/closed states */}
-      {isOpen ? (
-        <div className="pb-4 space-y-4">
-          {/* Disconnect Button - Full version */}
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Se déconnecter
-          </Button>
-
-          {/* Italian Flag Indicator */}
-          <div className="flex items-center justify-center space-x-2 text-xs">
-            <div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
-            <div className="w-3 h-3 bg-white border-2 border-green-500 rounded-full shadow-sm"></div>
-            <div className="w-3 h-3 bg-red-500 rounded-full shadow-sm"></div>
+                <button
+                  onClick={toggleUsersMenu}
+                  className="p-2 hover:bg-green-100/80 rounded-lg text-green-600 transition-colors"
+                  title="User Management"
+                >
+                  <Users className="h-5 w-5" />
+                </button>
+              </>
+            )}
+            {userIsAdmin && usersOpen && (
+              <div className="flex flex-col items-center space-y-2">
+                <Link
+                  to="/user-management/users"
+                  className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                  title="Utilisateur"
+                >
+                  <User className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/user-management/roles"
+                  className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                  title="Role"
+                >
+                  <Shield className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
           </div>
-        </div>
-      ) : (
-        <div className="pb-4 flex flex-col items-center space-y-4">
-          {/* Disconnect Button - Icon only */}
-          <button
-            onClick={handleLogout}
-            className="p-2 hover:bg-red-100/80 rounded-lg text-red-600 transition-colors"
-            title="Se déconnecter"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
+        )}
+      </div>
 
-          {/* Italian Flag Indicator - Smaller */}
-          <div className="flex items-center justify-center space-x-1 text-xs">
-            <div className="w-2 h-2 bg-green-500 rounded-full shadow-sm"></div>
-            <div className="w-2 h-2 bg-white border border-green-500 rounded-full shadow-sm"></div>
-            <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm"></div>
+      {/* Fixed Footer Section */}
+      <div className="flex-shrink-0 p-4">
+        {isOpen ? (
+          <div className="space-y-4">
+            {/* Disconnect Button - Full version */}
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Se déconnecter
+            </Button>
+
+            {/* Italian Flag Indicator */}
+            <div className="flex items-center justify-center space-x-2 text-xs">
+              <div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
+              <div className="w-3 h-3 bg-white border-2 border-green-500 rounded-full shadow-sm"></div>
+              <div className="w-3 h-3 bg-red-500 rounded-full shadow-sm"></div>
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col items-center space-y-4">
+            {/* Disconnect Button - Icon only */}
+            <button
+              onClick={handleLogout}
+              className="p-2 hover:bg-red-100/80 rounded-lg text-red-600 transition-colors"
+              title="Se déconnecter"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+
+            {/* Italian Flag Indicator - Smaller */}
+            <div className="flex items-center justify-center space-x-1 text-xs">
+              <div className="w-2 h-2 bg-green-500 rounded-full shadow-sm"></div>
+              <div className="w-2 h-2 bg-white border border-green-500 rounded-full shadow-sm"></div>
+              <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm"></div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

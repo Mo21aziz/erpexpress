@@ -60,7 +60,12 @@ export function CategoryArticlesModal({
   // Add state for null values warning
   const [nullValuesWarning, setNullValuesWarning] = useState({
     isOpen: false,
-    nullCategories: [] as Array<{id: string; name: string; stock: number | null; demand: number | null}>,
+    nullCategories: [] as Array<{
+      id: string;
+      name: string;
+      stock: number | null;
+      demand: number | null;
+    }>,
     targetDate: "",
   });
 
@@ -117,6 +122,25 @@ export function CategoryArticlesModal({
         });
 
         setLastBonDeCommandeValues(articleQuantities);
+
+        // Pre-populate articles with existing values from the bon de commande
+        setArticles((prevArticles) =>
+          prevArticles.map((article) => {
+            const existingValues = articleQuantities[article.id];
+            if (existingValues) {
+              return {
+                ...article,
+                quantite_a_stocker:
+                  existingValues.quantite_a_stocker ??
+                  article.quantite_a_stocker,
+                quantite_a_demander:
+                  existingValues.quantite_a_demander ??
+                  article.quantite_a_demander,
+              };
+            }
+            return article;
+          })
+        );
       }
     } catch (error) {
       console.error("Error fetching last bon de commande values:", error);
@@ -129,7 +153,7 @@ export function CategoryArticlesModal({
       const data = await articlesApi.getArticlesByCategory(category.id);
       setArticles(data);
 
-      // Fetch last bon de commande values
+      // Fetch last bon de commande values and pre-populate
       await fetchLastBonDeCommandeValues();
 
       setError(null);
@@ -230,7 +254,8 @@ export function CategoryArticlesModal({
     if (!selectedDate) {
       toast({
         title: "❌ Date requise",
-        description: "Veuillez sélectionner une date avant de valider les quantités.",
+        description:
+          "Veuillez sélectionner une date avant de valider les quantités.",
         variant: "destructive",
       });
       return;
@@ -239,35 +264,46 @@ export function CategoryArticlesModal({
     if (hasConfirmedBonDeCommande) {
       toast({
         title: "❌ Erreur",
-        description: "Impossible de modifier les quantités car le bon de commande est déjà confirmé.",
+        description:
+          "Impossible de modifier les quantités car le bon de commande est déjà confirmé.",
         variant: "destructive",
       });
       return;
     }
 
     // Check for null/zero values before proceeding
-    const nullCategories = articles.filter(article => {
-      const stock = Number(article.quantite_a_stocker);
-      const demand = Number(article.quantite_a_demander);
-      
-      const hasInvalidStock = isNaN(stock) || article.quantite_a_stocker === null || article.quantite_a_stocker === undefined;
-      const hasZeroStock = stock === 0;
-      const hasInvalidDemand = isNaN(demand) || article.quantite_a_demander === null || article.quantite_a_demander === undefined;
-      const hasZeroDemand = demand === 0;
-      
-      return hasInvalidStock || hasZeroStock || hasInvalidDemand || hasZeroDemand;
-    }).map(article => ({
-      id: article.id,
-      name: article.name,
-      stock: article.quantite_a_stocker,
-      demand: article.quantite_a_demander
-    }));
+    const nullCategories = articles
+      .filter((article) => {
+        const stock = Number(article.quantite_a_stocker);
+        const demand = Number(article.quantite_a_demander);
+
+        const hasInvalidStock =
+          isNaN(stock) ||
+          article.quantite_a_stocker === null ||
+          article.quantite_a_stocker === undefined;
+        const hasZeroStock = stock === 0;
+        const hasInvalidDemand =
+          isNaN(demand) ||
+          article.quantite_a_demander === null ||
+          article.quantite_a_demander === undefined;
+        const hasZeroDemand = demand === 0;
+
+        return (
+          hasInvalidStock || hasZeroStock || hasInvalidDemand || hasZeroDemand
+        );
+      })
+      .map((article) => ({
+        id: article.id,
+        name: article.name,
+        stock: article.quantite_a_stocker,
+        demand: article.quantite_a_demander,
+      }));
 
     if (nullCategories.length > 0) {
       setNullValuesWarning({
         isOpen: true,
         nullCategories,
-        targetDate: selectedDate
+        targetDate: selectedDate,
       });
       return; // Stop here and show warning
     }
@@ -282,20 +318,14 @@ export function CategoryArticlesModal({
     setError(null);
 
     try {
-      const articlesToUpdate = articles.filter(
-        (article) =>
-          (article.quantite_a_stocker !== null &&
-            article.quantite_a_stocker !== undefined &&
-            article.quantite_a_stocker >= 0) ||
-          (article.quantite_a_demander !== null &&
-            article.quantite_a_demander !== undefined &&
-            article.quantite_a_demander >= 0)
-      );
+      // Send ALL articles, including those with null values
+      // The backend will convert null values to 0
+      const articlesToUpdate = articles;
 
       if (articlesToUpdate.length === 0) {
         toast({
           title: "⚠️ Attention",
-          description: "Aucun article avec des quantités définies à mettre à jour.",
+          description: "Aucun article à traiter dans cette catégorie.",
           variant: "destructive",
         });
         return;
@@ -320,8 +350,9 @@ export function CategoryArticlesModal({
       );
 
       const promises = articlesToUpdate.map(async (article) => {
-        const stock = Number(article.quantite_a_stocker ?? 0);
-        const demand = Number(article.quantite_a_demander ?? 0);
+        // Send null values as-is, backend will convert them to 0
+        const stock = article.quantite_a_stocker;
+        const demand = article.quantite_a_demander;
 
         return bonDeCommandeApi.createBonDeCommande({
           description: `Bon de commande du ${targetDateFormatted}`,
@@ -356,14 +387,16 @@ export function CategoryArticlesModal({
     } catch (err: unknown) {
       let message =
         err instanceof AxiosError
-          ? err.response?.data?.error || "Failed to create/update bon de commande"
+          ? err.response?.data?.error ||
+            "Failed to create/update bon de commande"
           : err instanceof Error
           ? err.message
           : "Failed to create/update bon de commande";
 
       // Check if the error is about confirmed bon de commande
       if (message.includes("confirmed bon de commande")) {
-        message = "Impossible de modifier les quantités car le bon de commande est déjà confirmé.";
+        message =
+          "Impossible de modifier les quantités car le bon de commande est déjà confirmé.";
       }
 
       // Check for timeout error
@@ -384,9 +417,9 @@ export function CategoryArticlesModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-green-100 rounded-lg">
               <Package className="h-6 w-6 text-green-600" />
@@ -438,17 +471,7 @@ export function CategoryArticlesModal({
                 </>
               )}
             </Button>
-            {canManageArticles && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleAddArticle}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Article
-              </Button>
-            )}
+
             <Button
               variant="ghost"
               size="sm"
@@ -460,8 +483,8 @@ export function CategoryArticlesModal({
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Confirmed Bon De Commande Warning */}
           {hasConfirmedBonDeCommande && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -583,9 +606,11 @@ export function CategoryArticlesModal({
       {/* Null Values Warning Card */}
       <NullValuesWarningCard
         isOpen={nullValuesWarning.isOpen}
-        onClose={() => setNullValuesWarning(prev => ({ ...prev, isOpen: false }))}
+        onClose={() =>
+          setNullValuesWarning((prev) => ({ ...prev, isOpen: false }))
+        }
         onConfirm={async () => {
-          setNullValuesWarning(prev => ({ ...prev, isOpen: false }));
+          setNullValuesWarning((prev) => ({ ...prev, isOpen: false }));
           await proceedWithValidation();
         }}
         bonDeCommandeCode={`${category.name} - ${nullValuesWarning.targetDate}`}

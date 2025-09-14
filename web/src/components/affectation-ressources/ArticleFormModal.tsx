@@ -177,8 +177,9 @@ export function ArticleFormModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white rounded-lg w-full max-w-md mx-4 flex flex-col max-h-[90vh]">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-green-100 rounded-lg">
               <Package className="h-5 w-5 text-green-600" />
@@ -197,7 +198,11 @@ export function ArticleFormModal({
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Scrollable Content */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto p-6 space-y-4"
+        >
           {errors.general && (
             <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {errors.general}
@@ -263,7 +268,6 @@ export function ArticleFormModal({
               onChange={(e) =>
                 setFormData({ ...formData, collisage: e.target.value })
               }
-              
               required
             />
             {errors.collisage && (
@@ -289,25 +293,27 @@ export function ArticleFormModal({
               <p className="text-sm text-red-600">{errors.type}</p>
             )}
           </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="ghost" type="button" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-green-600 hover:bg-green-700"
-              disabled={isSubmitting}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmitting
-                ? "Saving..."
-                : mode === "add"
-                ? "Create Article"
-                : "Update Article"}
-            </Button>
-          </div>
         </form>
+
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 flex justify-end space-x-2 p-6 border-t border-gray-200 bg-gray-50">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700"
+            disabled={isSubmitting}
+            onClick={handleSubmit}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isSubmitting
+              ? "Saving..."
+              : mode === "add"
+              ? "Create Article"
+              : "Update Article"}
+          </Button>
+        </div>
       </div>
     </div>
   );

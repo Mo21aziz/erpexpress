@@ -165,6 +165,20 @@ export function ArticleFormModal({
     e.preventDefault();
     if (!validate() || isSubmitting) return;
 
+    // Additional validation for category_id
+    if (!formData.category_id) {
+      setErrors({
+        ...errors,
+        category_id: "La catégorie est requise",
+      });
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une catégorie",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const articleData = {
@@ -177,6 +191,7 @@ export function ArticleFormModal({
         category_id: formData.category_id,
       };
 
+      console.log("Submitting article data:", articleData); // Debug log
       onSave(articleData);
     } catch (err: unknown) {
       const message =
@@ -381,7 +396,7 @@ export function ArticleFormModal({
                   className="text-sm font-semibold text-gray-700 flex items-center"
                 >
                   <span className="mr-2">💰</span>
-                  Prix 
+                  Prix
                 </Label>
                 <Input
                   id="price"

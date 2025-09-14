@@ -34,35 +34,35 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
     margin + 16
   );
 
-const sortedCategories = [...bonDeCommande.categories].sort((a, b) => {
-  const aType = (a.article?.type || "catering").toLowerCase();
-  const bType = (b.article?.type || "catering").toLowerCase();
+  const sortedCategories = [...bonDeCommande.categories].sort((a, b) => {
+    const aType = (a.article?.type || "catering").toLowerCase();
+    const bType = (b.article?.type || "catering").toLowerCase();
 
-  // Order by type first: sonodis first, then catering
-  if (aType !== bType) {
-    if (aType === "sonodis") return -1;
-    if (bType === "sonodis") return 1;
-    return aType.localeCompare(bType);
-  }
+    // Order by type first: sonodis first, then catering
+    if (aType !== bType) {
+      if (aType === "sonodis") return -1;
+      if (bType === "sonodis") return 1;
+      return aType.localeCompare(bType);
+    }
 
-  // Within the same type, order by article numero (ascending)
-  const aNumero = a.article?.numero ?? Number.MAX_SAFE_INTEGER;
-  const bNumero = b.article?.numero ?? Number.MAX_SAFE_INTEGER;
-  
-  if (aNumero !== bNumero) {
-    return aNumero - bNumero;
-  }
+    // Within the same type, order by article numero (ascending)
+    const aNumero = a.article?.numero ?? Number.MAX_SAFE_INTEGER;
+    const bNumero = b.article?.numero ?? Number.MAX_SAFE_INTEGER;
 
-  // If same numero, order by category name
-  const aCat = (a.category?.name || "").toLowerCase();
-  const bCat = (b.category?.name || "").toLowerCase();
-  if (aCat !== bCat) return aCat.localeCompare(bCat);
+    if (aNumero !== bNumero) {
+      return aNumero - bNumero;
+    }
 
-  // Then by article name for consistent ordering
-  const aName = (a.article?.name || "").toLowerCase();
-  const bName = (b.article?.name || "").toLowerCase();
-  return aName.localeCompare(bName);
-});
+    // If same numero, order by category name
+    const aCat = (a.category?.name || "").toLowerCase();
+    const bCat = (b.category?.name || "").toLowerCase();
+    if (aCat !== bCat) return aCat.localeCompare(bCat);
+
+    // Then by article name for consistent ordering
+    const aName = (a.article?.name || "").toLowerCase();
+    const bName = (b.article?.name || "").toLowerCase();
+    return aName.localeCompare(bName);
+  });
 
   const headers = [["Colis", "Article", "Stock", "Dem", "Liv"]];
   const body = sortedCategories.map((category) => [
@@ -250,5 +250,43 @@ export const validateBonDeCommandeCompleteness = (
       (missingArticles && missingArticles.length > 0),
     missingCategories,
     missingArticles,
+  };
+};
+
+// Enhanced validation for confirmation with zero-quantity articles
+export const validateBonDeCommandeForConfirmation = (
+  bonDeCommande: BonDeCommande,
+  allCategories: any[],
+  allArticles: any[]
+) => {
+  // Check for missing categories and articles
+  const completenessValidation = validateBonDeCommandeCompleteness(
+    bonDeCommande,
+    allCategories,
+    allArticles
+  );
+
+  // Check for zero-quantity articles
+  const zeroQuantityArticles = bonDeCommande.categories.filter((category) => {
+    return (
+      category.article_id && // Only check articles, not category-level entries
+      (category.quantite_a_stocker === 0 ||
+        category.quantite_a_demander === 0 ||
+        category.quantite_a_stocker === null ||
+        category.quantite_a_demander === null ||
+        category.quantite_a_stocker === undefined ||
+        category.quantite_a_demander === undefined)
+    );
+  });
+
+  return {
+    hasMissingCategories: completenessValidation.missingCategories.length > 0,
+    hasMissingArticles: completenessValidation.missingArticles.length > 0,
+    hasZeroQuantityArticles: zeroQuantityArticles.length > 0,
+    missingCategories: completenessValidation.missingCategories,
+    missingArticles: completenessValidation.missingArticles,
+    zeroQuantityArticles: zeroQuantityArticles,
+    requiresConfirmationModal:
+      completenessValidation.hasMissingItems || zeroQuantityArticles.length > 0,
   };
 };

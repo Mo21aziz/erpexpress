@@ -55,14 +55,24 @@ export function ArticleCard({
   // Track if user has manually changed values
   const hasUserChangedValues = useRef(false);
 
-  // Reset user change flag when article changes
+  // Reset user change flag when article changes and pre-populate with existing values
   useEffect(() => {
     console.log("ArticleCard: Article changed, resetting user change flag");
     hasUserChangedValues.current = false;
-    // Reset quantities to empty when article changes
-    setStockQuantity(null);
-    setDemandQuantity(null);
-  }, [article.id]);
+
+    // Pre-populate with existing values from bon de commande if available
+    const existingStock =
+      lastBonDeCommandeValues?.quantite_a_stocker ??
+      article.quantite_a_stocker ??
+      null;
+    const existingDemand =
+      lastBonDeCommandeValues?.quantite_a_demander ??
+      article.quantite_a_demander ??
+      null;
+
+    setStockQuantity(existingStock);
+    setDemandQuantity(existingDemand);
+  }, [article.id, lastBonDeCommandeValues]);
 
   const handleCreateBonDeCommande = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -123,12 +133,13 @@ export function ArticleCard({
         })();
 
       // Create bon de commande data
+      // Send null values as-is, backend will convert them to 0
       const bonDeCommandeData = {
         description: `Bon de commande du ${targetDate}`,
         category_id: article.category_id,
         article_id: article.id,
-        quantite_a_stocker: stockQuantity || 0,
-        quantite_a_demander: demandQuantity || 0,
+        quantite_a_stocker: stockQuantity,
+        quantite_a_demander: demandQuantity,
         article_name: article.name,
         target_date: targetDate,
       };
@@ -238,48 +249,69 @@ export function ArticleCard({
           <div className="flex items-center space-x-2">
             <Package2 className="h-4 w-4 text-orange-600" />
             <span className="text-sm text-gray-600"> stock:</span>
-            <Input
-              type="number"
-              min="0"
-              onChange={(e) => {
-                const value =
-                  e.target.value === "" ? null : Number(e.target.value);
-                console.log("ArticleCard: Stock quantity changed to:", value);
-                setStockQuantity(value);
-                hasUserChangedValues.current = true;
-                onQuantityChange?.(
-                  article.id,
-                  "quantite_a_stocker",
-                  value || 0
-                );
-              }}
-              className="w-16 h-8 text-xs"
-              placeholder=""
-              disabled={disabled}
-            />
+            <div className="relative">
+              <Input
+                type="number"
+                min="0"
+                value={stockQuantity ?? ""}
+                onChange={(e) => {
+                  const value =
+                    e.target.value === "" ? null : Number(e.target.value);
+                  console.log("ArticleCard: Stock quantity changed to:", value);
+                  setStockQuantity(value);
+                  hasUserChangedValues.current = true;
+                  onQuantityChange?.(
+                    article.id,
+                    "quantite_a_stocker",
+                    value || 0
+                  );
+                }}
+                className="w-16 h-8 text-xs"
+                placeholder=""
+                disabled={disabled}
+              />
+              {lastBonDeCommandeValues?.quantite_a_stocker !== undefined && (
+                <div
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"
+                  title="Valeur pré-remplie depuis le bon de commande existant"
+                ></div>
+              )}
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <ShoppingCart className="h-4 w-4 text-purple-600" />
             <span className="text-sm text-gray-600"> demande:</span>
-            <Input
-              type="number"
-              min="0"
-              onChange={(e) => {
-                const value =
-                  e.target.value === "" ? null : Number(e.target.value);
-                console.log("ArticleCard: Demand quantity changed to:", value);
-                setDemandQuantity(value);
-                hasUserChangedValues.current = true;
-                onQuantityChange?.(
-                  article.id,
-                  "quantite_a_demander",
-                  value || 0
-                );
-              }}
-              className="w-16 h-8 text-xs"
-              placeholder=""
-              disabled={disabled}
-            />
+            <div className="relative">
+              <Input
+                type="number"
+                min="0"
+                value={demandQuantity ?? ""}
+                onChange={(e) => {
+                  const value =
+                    e.target.value === "" ? null : Number(e.target.value);
+                  console.log(
+                    "ArticleCard: Demand quantity changed to:",
+                    value
+                  );
+                  setDemandQuantity(value);
+                  hasUserChangedValues.current = true;
+                  onQuantityChange?.(
+                    article.id,
+                    "quantite_a_demander",
+                    value || 0
+                  );
+                }}
+                className="w-16 h-8 text-xs"
+                placeholder=""
+                disabled={disabled}
+              />
+              {lastBonDeCommandeValues?.quantite_a_demander !== undefined && (
+                <div
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"
+                  title="Valeur pré-remplie depuis le bon de commande existant"
+                ></div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

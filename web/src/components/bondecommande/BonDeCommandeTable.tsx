@@ -19,7 +19,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canAccessGerantPages } from "@/utils/roleUtils";
 import { categories as categoriesApi } from "@/api/categoty";
 import { articles as articlesApi } from "@/api/articles";
-import { validateBonDeCommandeCompleteness } from "@/utils/pdfExport";
+import {
+  validateBonDeCommandeCompleteness,
+  validateBonDeCommandeForConfirmation,
+} from "@/utils/pdfExport";
+import { ConfirmationWarningModal } from "./ConfirmationWarningModal";
 
 interface BonDeCommandeTableProps {
   bonDeCommandes: BonDeCommande[];
@@ -277,6 +281,23 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
     missingArticles: [],
   });
 
+  // State for comprehensive confirmation warning
+  const [confirmationWarning, setConfirmationWarning] = useState<{
+    isOpen: boolean;
+    bonDeCommande: BonDeCommande | null;
+    newStatus: string;
+    missingCategories: any[];
+    missingArticles: any[];
+    zeroQuantityArticles: any[];
+  }>({
+    isOpen: false,
+    bonDeCommande: null,
+    newStatus: "",
+    missingCategories: [],
+    missingArticles: [],
+    zeroQuantityArticles: [],
+  });
+
   // State for all categories and articles
   const [allCategories, setAllCategories] = useState<any[]>([]);
   const [allArticles, setAllArticles] = useState<any[]>([]);
@@ -302,32 +323,23 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
     bonDeCommande: BonDeCommande,
     newStatus: string
   ) => {
-    // If trying to confirm, check for missing items first
+    // If trying to confirm, check for validation issues
     if (newStatus === "confirmer") {
-      const validation = validateBonDeCommandeCompleteness(
+      const validation = validateBonDeCommandeForConfirmation(
         bonDeCommande,
         allCategories,
         allArticles
       );
 
-      if (validation.hasMissingItems) {
-        // Show missing items warning first
-        setMissingItemsWarning({
+      if (validation.requiresConfirmationModal) {
+        // Show comprehensive confirmation warning
+        setConfirmationWarning({
           isOpen: true,
           bonDeCommande,
           newStatus,
           missingCategories: validation.missingCategories,
           missingArticles: validation.missingArticles,
-        });
-        return;
-      }
-
-      // If no missing items but there are null values, show null values warning
-      if (hasNullValues(bonDeCommande)) {
-        setWarningCard({
-          isOpen: true,
-          bonDeCommande,
-          newStatus,
+          zeroQuantityArticles: validation.zeroQuantityArticles,
         });
         return;
       }
@@ -377,6 +389,38 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
   const handleGoToAffectation = () => {
     // Navigate to affectation des ressources page
     window.location.href = "/affectation-ressources";
+  };
+
+  const handleConfirmAnyway = async () => {
+    if (confirmationWarning.bonDeCommande && confirmationWarning.newStatus) {
+      try {
+        await onStatusChange?.(
+          confirmationWarning.bonDeCommande,
+          confirmationWarning.newStatus
+        );
+        setConfirmationWarning({
+          isOpen: false,
+          bonDeCommande: null,
+          newStatus: "",
+          missingCategories: [],
+          missingArticles: [],
+          zeroQuantityArticles: [],
+        });
+      } catch (error) {
+        console.error("Error confirming bon de commande:", error);
+      }
+    }
+  };
+
+  const handleCloseConfirmationWarning = () => {
+    setConfirmationWarning({
+      isOpen: false,
+      bonDeCommande: null,
+      newStatus: "",
+      missingCategories: [],
+      missingArticles: [],
+      zeroQuantityArticles: [],
+    });
   };
 
   if (loading) {
@@ -602,6 +646,17 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
         bonDeCommande={missingItemsWarning.bonDeCommande!}
         missingCategories={missingItemsWarning.missingCategories}
         missingArticles={missingItemsWarning.missingArticles}
+      />
+
+      {/* Comprehensive Confirmation Warning Modal */}
+      <ConfirmationWarningModal
+        isOpen={confirmationWarning.isOpen}
+        onClose={handleCloseConfirmationWarning}
+        onConfirmAnyway={handleConfirmAnyway}
+        bonDeCommande={confirmationWarning.bonDeCommande!}
+        missingCategories={confirmationWarning.missingCategories}
+        missingArticles={confirmationWarning.missingArticles}
+        zeroQuantityArticles={confirmationWarning.zeroQuantityArticles}
       />
     </>
   );

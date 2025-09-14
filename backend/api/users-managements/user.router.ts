@@ -144,10 +144,32 @@ router.put("/:id", async (req: Request, res: Response) => {
 // Delete user
 console.log("Registering route: DELETE /:id");
 router.delete("/:id", async (req: Request, res: Response) => {
+  console.log("DELETE /api/users/:id route hit"); // Debug log
+  console.log("User ID to delete:", req.params.id); // Debug log
   try {
     const user = await container.UserService.deleteUser(req.params.id);
+    console.log("User deleted successfully:", user); // Debug log
     res.status(200).json(user);
   } catch (error: any) {
+    console.error("Error deleting user:", error); // Debug log
+    console.error("Error details:", {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+    });
+
+    // Provide more specific error messages
+    if (error.code === "P2003") {
+      return res.status(400).json({
+        error:
+          "Cannot delete user: User has related records that prevent deletion. Please remove related data first.",
+      });
+    }
+
+    if (error.message === "User not found") {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     res.status(400).json({ error: error.message });
   }
 });
