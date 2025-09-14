@@ -68,6 +68,9 @@ export const UserFormCard = ({
   );
 
   const [errors, setErrors] = useState({
+    username: "",
+    email: "",
+    role: "",
     password: "",
     general: "",
   });
@@ -102,8 +105,36 @@ export const UserFormCard = ({
   }, [formData.role_id, roles]);
 
   const validate = () => {
-    const newErrors = { password: "", general: "" };
+    const newErrors = {
+      username: "",
+      email: "",
+      role: "",
+      password: "",
+      general: "",
+    };
     let valid = true;
+
+    // Validate required fields
+    if (!formData.username?.trim()) {
+      newErrors.username = "Username is required";
+      valid = false;
+    }
+
+    if (!formData.email?.trim()) {
+      newErrors.email = "Email is required";
+      valid = false;
+    }
+
+    if (!formData.role_id) {
+      newErrors.role = "Role is required";
+      valid = false;
+    }
+
+    // Validate email format
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+      valid = false;
+    }
 
     if (!isEditing && formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";

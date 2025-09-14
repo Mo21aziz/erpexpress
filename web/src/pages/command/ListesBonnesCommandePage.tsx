@@ -72,20 +72,42 @@ export function ListesBonnesCommandePage() {
     newStatus: string
   ) => {
     try {
-      await bonDeCommandeApi.updateStatus(bonDeCommande.id, newStatus);
+      console.log(
+        `[Frontend] Updating status for bon de commande ${bonDeCommande.id} to ${newStatus}`
+      );
+      const updatedBonDeCommande = await bonDeCommandeApi.updateStatus(
+        bonDeCommande.id,
+        newStatus
+      );
+      console.log(`[Frontend] Updated bon de commande:`, updatedBonDeCommande);
+      console.log(
+        `[Frontend] Updated bon de commande has ${updatedBonDeCommande.categories.length} categories`
+      );
 
-      // Update the local state
+      // Update the local state with the complete updated data
       setBonDeCommandes((prevBonDeCommandes) =>
         prevBonDeCommandes.map((bdc) =>
-          bdc.id === bonDeCommande.id ? { ...bdc, status: newStatus } : bdc
+          bdc.id === bonDeCommande.id ? updatedBonDeCommande : bdc
         )
       );
+
+      // If the detail modal is open for this bon de commande, update it too
+      if (
+        selectedBonDeCommande &&
+        selectedBonDeCommande.id === bonDeCommande.id
+      ) {
+        console.log(
+          `[Frontend] Updating selected bon de commande in detail modal`
+        );
+        setSelectedBonDeCommande(updatedBonDeCommande);
+      }
 
       toast({
         title: "Succès",
         description: `Statut mis à jour vers "${newStatus}"`,
       });
     } catch (error) {
+      console.error(`[Frontend] Error updating status:`, error);
       toast({
         title: "Erreur",
         description: "Erreur lors de la mise à jour du statut",

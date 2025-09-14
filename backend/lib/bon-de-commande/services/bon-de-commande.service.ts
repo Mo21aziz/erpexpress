@@ -357,15 +357,52 @@ export class BonDeCommandeService {
       throw new Error("Status must be 'en attente' or 'confirmer'");
     }
 
-    return await this.prisma.bonDeCommande.update({
-      where: { id },
-      data: { status },
-      include: {
-        employee: {
-          include: {
-            user: true,
+    return await this.prisma.$transaction(async (tx) => {
+      // If confirming, ensure all categories and articles are present
+      if (status === "confirmer") {
+        await this.ensureCompleteBonDeCommande(tx, id);
+      }
+
+      return await tx.bonDeCommande.update({
+        where: { id },
+        data: { status },
+        include: {
+          employee: {
+            include: {
+              user: true,
+            },
+          },
+          categories: {
+            include: {
+              category: true,
+              article: true,
+            },
           },
         },
+      });
+    });
+  }
+
+  private async ensureCompleteBonDeCommande(
+    tx: any,
+    bonDeCommandeId: string
+  ): Promise<void> {
+    console.log(
+      `[BonDeCommandeService] Ensuring complete bon de commande for ID: ${bonDeCommandeId}`
+    );
+
+    // Get all categories and articles
+    const allCategories = await tx.category.findMany();
+    const allArticles = await tx.article.findMany();
+
+    console.log(
+      `[BonDeCommandeService] Found ${allCategories.length} categories and ${allArticles.length} articles`
+    );
+
+    // Get current bon de commande with its categories
+    const currentBonDeCommande = await tx.bonDeCommande.findUnique({
+      where: { id: bonDeCommandeId },
+      include: {
         categories: {
           include: {
             category: true,
@@ -374,6 +411,90 @@ export class BonDeCommandeService {
         },
       },
     });
+
+    if (!currentBonDeCommande) {
+      throw new Error("Bon de commande not found");
+    }
+
+    console.log(
+      `[BonDeCommandeService] Current bon de commande has ${currentBonDeCommande.categories.length} categories`
+    );
+
+    // Get existing category and article IDs
+    const existingCategoryIds = new Set(
+      currentBonDeCommande.categories
+        .map((c: any) => c.category?.id)
+        .filter(Boolean)
+    );
+    const existingArticleIds = new Set(
+      currentBonDeCommande.categories
+        .map((c: any) => c.article?.id)
+        .filter(Boolean)
+    );
+
+    console.log(
+      `[BonDeCommandeService] Existing category IDs:`,
+      Array.from(existingCategoryIds)
+    );
+    console.log(
+      `[BonDeCommandeService] Existing article IDs:`,
+      Array.from(existingArticleIds)
+    );
+
+    // Find missing categories
+    const missingCategories = allCategories.filter(
+      (cat: any) => cat && cat.id && !existingCategoryIds.has(cat.id)
+    );
+
+    // Find missing articles
+    const missingArticles = allArticles.filter(
+      (art: any) => art && art.id && !existingArticleIds.has(art.id)
+    );
+
+    console.log(
+      `[BonDeCommandeService] Missing categories:`,
+      missingCategories.map((c: any) => c.name)
+    );
+    console.log(
+      `[BonDeCommandeService] Missing articles:`,
+      missingArticles.map((a: any) => a.name)
+    );
+
+    // Add missing categories with zero quantities
+    for (const category of missingCategories) {
+      console.log(
+        `[BonDeCommandeService] Adding missing category: ${category.name}`
+      );
+      await tx.bonDeCommandeCategory.create({
+        data: {
+          bon_de_commande_id: bonDeCommandeId,
+          category_id: category.id,
+          article_id: null, // Category-level entry
+          quantite_a_stocker: 0,
+          quantite_a_demander: 0,
+        },
+      });
+    }
+
+    // Add missing articles with zero quantities
+    for (const article of missingArticles) {
+      console.log(
+        `[BonDeCommandeService] Adding missing article: ${article.name} (category: ${article.category_id})`
+      );
+      await tx.bonDeCommandeCategory.create({
+        data: {
+          bon_de_commande_id: bonDeCommandeId,
+          category_id: article.category_id,
+          article_id: article.id,
+          quantite_a_stocker: 0,
+          quantite_a_demander: 0,
+        },
+      });
+    }
+
+    console.log(
+      `[BonDeCommandeService] Completed adding missing categories and articles`
+    );
   }
 
   async updateCategory(

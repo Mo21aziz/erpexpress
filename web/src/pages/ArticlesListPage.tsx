@@ -94,6 +94,25 @@ export function ArticlesListPage() {
     category_id: string;
   }) => {
     try {
+      console.log("Creating article with data:", articleData); // Debug log
+
+      // Validate required fields before sending
+      if (!articleData.category_id) {
+        throw new Error("Category ID is required");
+      }
+      if (!articleData.collisage) {
+        throw new Error("Collisage is required");
+      }
+      if (!articleData.type) {
+        throw new Error("Article type is required");
+      }
+      if (articleData.type !== "catering" && articleData.type !== "sonodis") {
+        throw new Error("Article type must be either 'catering' or 'sonodis'");
+      }
+      if (articleData.price < 0) {
+        throw new Error("Price must be positive");
+      }
+
       const newArticle = await articlesApi.createArticle(articleData);
 
       // Ensure all required fields have default values
@@ -115,6 +134,7 @@ export function ArticlesListPage() {
         description: "Article created successfully",
       });
     } catch (err: unknown) {
+      console.error("Error creating article:", err); // Debug log
       handleError(err, "Failed to create article");
     }
   };

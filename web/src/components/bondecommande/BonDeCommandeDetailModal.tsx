@@ -25,7 +25,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { bonDeCommandeApi } from "@/api/bon-de-commande";
 import { categories as categoriesApi } from "@/api/categoty";
 import { articles as articlesApi } from "@/api/articles";
-import { validateBonDeCommandeCompleteness } from "@/utils/pdfExport";
+import {
+  validateBonDeCommandeCompleteness,
+  validateBonDeCommandeForConfirmation,
+} from "@/utils/pdfExport";
+import { ConfirmationWarningModal } from "./ConfirmationWarningModal";
 
 // Utility function to validate decimal input - very permissive for typing
 const isValidDecimalInput = (value: string): boolean => {
@@ -377,6 +381,23 @@ export const BonDeCommandeDetailModal: React.FC<
     missingArticles: [],
   });
 
+  // State for comprehensive confirmation warning
+  const [confirmationWarning, setConfirmationWarning] = useState<{
+    isOpen: boolean;
+    bonDeCommande: BonDeCommande | null;
+    newStatus: string;
+    missingCategories: any[];
+    missingArticles: any[];
+    zeroQuantityArticles: any[];
+  }>({
+    isOpen: false,
+    bonDeCommande: null,
+    newStatus: "",
+    missingCategories: [],
+    missingArticles: [],
+    zeroQuantityArticles: [],
+  });
+
   // State for confirmed bon de commande warning
   const [confirmedWarning, setConfirmedWarning] = useState<{
     isOpen: boolean;
@@ -453,32 +474,23 @@ export const BonDeCommandeDetailModal: React.FC<
     bonDeCommande: BonDeCommande,
     newStatus: string
   ) => {
-    // If trying to confirm, check for missing items first
+    // If trying to confirm, check for validation issues
     if (newStatus === "confirmer") {
-      const validation = validateBonDeCommandeCompleteness(
+      const validation = validateBonDeCommandeForConfirmation(
         bonDeCommande,
         allCategories,
         allArticles
       );
 
-      if (validation.hasMissingItems) {
-        // Show missing items warning first
-        setMissingItemsWarning({
+      if (validation.requiresConfirmationModal) {
+        // Show comprehensive confirmation warning
+        setConfirmationWarning({
           isOpen: true,
           bonDeCommande,
           newStatus,
           missingCategories: validation.missingCategories,
           missingArticles: validation.missingArticles,
-        });
-        return;
-      }
-
-      // If no missing items but there are null values, show null values warning
-      if (hasNullValues(bonDeCommande)) {
-        setWarningCard({
-          isOpen: true,
-          bonDeCommande,
-          newStatus,
+          zeroQuantityArticles: validation.zeroQuantityArticles,
         });
         return;
       }
@@ -516,6 +528,38 @@ export const BonDeCommandeDetailModal: React.FC<
 
   const handleCloseConfirmedWarning = () => {
     setConfirmedWarning({ isOpen: false });
+  };
+
+  const handleConfirmAnyway = async () => {
+    if (confirmationWarning.bonDeCommande && confirmationWarning.newStatus) {
+      try {
+        await onStatusChange?.(
+          confirmationWarning.bonDeCommande,
+          confirmationWarning.newStatus
+        );
+        setConfirmationWarning({
+          isOpen: false,
+          bonDeCommande: null,
+          newStatus: "",
+          missingCategories: [],
+          missingArticles: [],
+          zeroQuantityArticles: [],
+        });
+      } catch (error) {
+        console.error("Error confirming bon de commande:", error);
+      }
+    }
+  };
+
+  const handleCloseConfirmationWarning = () => {
+    setConfirmationWarning({
+      isOpen: false,
+      bonDeCommande: null,
+      newStatus: "",
+      missingCategories: [],
+      missingArticles: [],
+      zeroQuantityArticles: [],
+    });
   };
 
   const handleSave = async () => {
@@ -624,9 +668,9 @@ export const BonDeCommandeDetailModal: React.FC<
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Fixed Header */}
+          <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <FileText className="h-6 w-6 text-blue-600" />
@@ -722,8 +766,8 @@ export const BonDeCommandeDetailModal: React.FC<
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6">
             {/* Confirmed Status Banner */}
             {bonDeCommande.status === "confirmer" && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -1058,6 +1102,17 @@ export const BonDeCommandeDetailModal: React.FC<
       <ConfirmedWarningCard
         isOpen={confirmedWarning.isOpen}
         onClose={handleCloseConfirmedWarning}
+      />
+
+      {/* Comprehensive Confirmation Warning Modal */}
+      <ConfirmationWarningModal
+        isOpen={confirmationWarning.isOpen}
+        onClose={handleCloseConfirmationWarning}
+        onConfirmAnyway={handleConfirmAnyway}
+        bonDeCommande={confirmationWarning.bonDeCommande!}
+        missingCategories={confirmationWarning.missingCategories}
+        missingArticles={confirmationWarning.missingArticles}
+        zeroQuantityArticles={confirmationWarning.zeroQuantityArticles}
       />
     </>
   );

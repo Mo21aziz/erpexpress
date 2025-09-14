@@ -41,11 +41,13 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Category ID is required" });
     }
 
-    if (quantite_a_stocker === undefined || quantite_a_stocker === null) {
+    // Allow null values for quantite_a_stocker and quantite_a_demander
+    // These will be handled by the frontend warning system
+    if (quantite_a_stocker === undefined) {
       return res.status(400).json({ error: "Quantite a stocker is required" });
     }
 
-    if (quantite_a_demander === undefined || quantite_a_demander === null) {
+    if (quantite_a_demander === undefined) {
       return res.status(400).json({ error: "Quantite a demander is required" });
     }
 
@@ -177,11 +179,12 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
           });
 
           // Update the existing article entry
+          // Convert null values to 0 for database storage
           await container.prisma.bonDeCommandeCategory.update({
             where: { id: existingArticleEntry.id },
             data: {
-              quantite_a_stocker: quantite_a_stocker,
-              quantite_a_demander: quantite_a_demander,
+              quantite_a_stocker: quantite_a_stocker ?? 0,
+              quantite_a_demander: quantite_a_demander ?? 0,
             },
           });
         } else {
@@ -204,8 +207,8 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
             bon_de_commande_id: existingBonDeCommandeBasic.id,
             category_id,
             article_id: article_id,
-            quantite_a_stocker,
-            quantite_a_demander,
+            quantite_a_stocker: quantite_a_stocker ?? 0,
+            quantite_a_demander: quantite_a_demander ?? 0,
           },
         });
       }
@@ -266,13 +269,14 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
     });
 
     // Create the bon de commande category relationship
+    // Convert null values to 0 for database storage
     await container.prisma.bonDeCommandeCategory.create({
       data: {
         bon_de_commande_id: bonDeCommande.id,
         category_id,
         article_id: article_id, // Article-level entry
-        quantite_a_stocker,
-        quantite_a_demander,
+        quantite_a_stocker: quantite_a_stocker ?? 0,
+        quantite_a_demander: quantite_a_demander ?? 0,
       },
     });
 
