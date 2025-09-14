@@ -1,7 +1,7 @@
 // API Configuration
 export const API_BASE_URL = import.meta.env.PROD
   ? "https://erpexpress-1.onrender.com/api" // Connect directly to backend
-  : import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  : import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 // Frontend URL for reference
 export const FRONTEND_URL =

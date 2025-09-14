@@ -247,11 +247,11 @@ app.get("/api/cors-debug", (req: Request, res: Response) => {
   });
 });
 
-app.use("/auth", connect);
-app.use("/category", categoryRouter);
-app.use("/articles", articleRouter);
-app.use("/orders", orderRouter);
-app.use("/bon-de-commande", bonDeCommandeRouter);
+app.use("/api/auth", connect);
+app.use("/api/category", categoryRouter);
+app.use("/api/articles", articleRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/bon-de-commande", bonDeCommandeRouter);
 
 const isExpressRouter = (router: any) =>
   router &&
@@ -260,10 +260,10 @@ const isExpressRouter = (router: any) =>
   Array.isArray(router.stack);
 
 if (isExpressRouter(userRouter)) {
-  app.use("/users", userRouter);
+  app.use("/api/users", userRouter);
 }
 if (isExpressRouter(roleRouter)) {
-  app.use("/roles", roleRouter);
+  app.use("/api/roles", roleRouter);
 }
 
 app.use((req: Request, res: Response) => {
