@@ -901,10 +901,10 @@ export const BonDeCommandeDetailModal: React.FC<
                             <table className="w-full border-collapse border border-gray-300">
                               <thead>
                                 <tr className="bg-gray-50">
-                                  <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-left font-semibold w-[40%] sm:w-auto">
                                     Article
                                   </th>
-                                  <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
+                                  <th className="border border-gray-300 px-2 sm:px-4 py-2 text-center font-semibold w-16 sm:w-24">
                                     Collisage
                                   </th>
                                   <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
@@ -925,17 +925,20 @@ export const BonDeCommandeDetailModal: React.FC<
                                       key={entry.id}
                                       className="hover:bg-gray-50"
                                     >
-                                      <td className="border border-gray-300 px-4 py-2">
+                                      <td className="border border-gray-300 px-2 sm:px-4 py-2 align-top">
                                         <div className="text-sm">
-                                          <div className="font-medium">
+                                          <div
+                                            className="font-medium max-w-[120px] sm:max-w-none truncate"
+                                            title={article.name}
+                                          >
                                             {article.name}
                                           </div>
-                                          <div className="text-gray-500 text-xs">
+                                          <div className="hidden sm:block text-gray-500 text-xs">
                                             {article.description}
                                           </div>
                                         </div>
                                       </td>
-                                      <td className="border border-gray-300 px-4 py-2 text-center">
+                                      <td className="border border-gray-300 px-2 sm:px-4 py-2 text-center w-16 sm:w-24">
                                         <span className="text-sm font-medium">
                                           {article.collisage}
                                         </span>

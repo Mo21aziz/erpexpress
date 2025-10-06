@@ -192,13 +192,13 @@ export const NewBonDeCommandeModal: React.FC<NewBonDeCommandeModalProps> = ({
 
           {/* Articles table */}
           <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="min-w-[640px] sm:min-w-0 w-full border-collapse border border-border">
+            <table className="w-full border-collapse border border-border">
               <thead className="bg-muted">
                 <tr>
-                  <th className="border border-border px-3 sm:px-4 py-2 text-left font-semibold text-xs sm:text-sm">
+                  <th className="border border-border px-3 sm:px-4 py-2 text-left font-semibold text-xs sm:text-sm w-[40%] sm:w-auto">
                     Article
                   </th>
-                  <th className="border border-border px-3 sm:px-4 py-2 text-center font-semibold text-xs sm:text-sm">
+                  <th className="border border-border px-3 sm:px-4 py-2 text-center font-semibold text-xs sm:text-sm w-16 sm:w-24">
                     Collisage
                   </th>
                   <th className="border border-border px-3 sm:px-4 py-2 text-center font-semibold text-xs sm:text-sm">
@@ -222,17 +222,20 @@ export const NewBonDeCommandeModal: React.FC<NewBonDeCommandeModalProps> = ({
                 ) : (
                   allArticles.map((a) => (
                     <tr key={a.id} className="hover:bg-muted/50">
-                      <td className="border border-border px-3 sm:px-4 py-2">
-                        <div className="text-xs sm:text-sm font-medium">
+                      <td className="border border-border px-3 sm:px-4 py-2 align-top">
+                        <div
+                          className="text-xs sm:text-sm font-medium max-w-[120px] sm:max-w-none truncate"
+                          title={a.name}
+                        >
                           {a.name}
                         </div>
                         {a.description && (
-                          <div className="text-[10px] sm:text-xs text-muted-foreground">
+                          <div className="hidden sm:block text-[10px] sm:text-xs text-muted-foreground">
                             {a.description}
                           </div>
                         )}
                       </td>
-                      <td className="border border-border px-3 sm:px-4 py-2 text-center">
+                      <td className="border border-border px-3 sm:px-4 py-2 text-center w-16 sm:w-24">
                         <span className="text-xs sm:text-sm font-medium">
                           {a.collisage}
                         </span>

@@ -24,15 +24,19 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
   doc.setFont("helvetica", "bold");
   doc.text("Bon de Commande", margin, margin + 10);
 
-  doc.setFontSize(8);
+  doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.text("Créé par:", margin, margin + 16);
+  // Enlarge username for better visibility
+  doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
   doc.text(
     bonDeCommande.employee?.user?.username || "Utilisateur inconnu",
-    margin + 18,
+    margin + 32,
     margin + 16
   );
+  // Reset default font size after username
+  doc.setFontSize(10);
 
   const sortedCategories = [...bonDeCommande.categories].sort((a, b) => {
     const aType = (a.article?.type || "catering").toLowerCase();
@@ -144,10 +148,13 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
       );
     }
 
-    // Apply light gray background to Stock columns (index 2 and 7) in body only
+    // Apply light gray background to Collisage and Stock columns in body only
     if (
-      (data.column.index === 2 || data.column.index === 7) &&
-      data.section === "body"
+      data.section === "body" &&
+      (data.column.index === 0 ||
+        data.column.index === 2 ||
+        data.column.index === 5 ||
+        data.column.index === 7)
     ) {
       doc.setFillColor(180, 180, 180);
       doc.rect(
@@ -201,14 +208,14 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
       0: { cellWidth: adjustedColumnWidth * 0.12 },
       1: { cellWidth: adjustedColumnWidth * 0.5 },
       2: { cellWidth: adjustedColumnWidth * 0.12 },
-      3: { cellWidth: adjustedColumnWidth * 0.13 },
+      3: { cellWidth: adjustedColumnWidth * 0.13, halign: "center" },
       4: { cellWidth: adjustedColumnWidth * 0.13 },
 
       // Second column set
       5: { cellWidth: adjustedColumnWidth * 0.12 },
       6: { cellWidth: adjustedColumnWidth * 0.5 },
       7: { cellWidth: adjustedColumnWidth * 0.12 },
-      8: { cellWidth: adjustedColumnWidth * 0.13 },
+      8: { cellWidth: adjustedColumnWidth * 0.13, halign: "center" },
       9: { cellWidth: adjustedColumnWidth * 0.13 },
     },
     theme: "grid",
