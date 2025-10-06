@@ -36,11 +36,25 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <AffectationRessourcesPage />,
+        element: (
+          <RoleBasedRoute
+            allowedRoles={["Admin", "Responsible"]}
+            fallbackPath="/listes-bonnes-commande"
+          >
+            <AffectationRessourcesPage />
+          </RoleBasedRoute>
+        ),
       },
       {
         path: "affectation-ressources",
-        element: <AffectationRessourcesPage />,
+        element: (
+          <RoleBasedRoute
+            allowedRoles={["Admin", "Responsible"]}
+            fallbackPath="/listes-bonnes-commande"
+          >
+            <AffectationRessourcesPage />
+          </RoleBasedRoute>
+        ),
       },
       {
         path: "listes-bonnes-commande",

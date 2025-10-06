@@ -150,9 +150,12 @@ export class BonDeCommandeService {
       `[BonDeCommandeService] getAllBonDeCommande called with userId: ${userId}, userRole: ${userRole}`
     );
 
+    // Normalize role casing for reliable comparisons
+    const normalizedRole = (userRole || "").toLowerCase();
+
     // If user is Gerant, show bon de commande from assigned employees
     // and limit to last 48 hours
-    if (userRole === "Gerant" && userId) {
+    if (normalizedRole === "gerant" && userId) {
       console.log(
         `[BonDeCommandeService] User is Gerant, filtering by assigned employees and last 48 hours`
       );
@@ -195,11 +198,11 @@ export class BonDeCommandeService {
       }
     }
     // If user is not admin, responsible, or gerant, only show their own bon de commande
-    // and limit to last 48 hours for employees
+    // No time restriction for employees
     else if (
-      userRole !== "Admin" &&
-      userRole !== "Responsible" &&
-      userRole !== "Gerant" &&
+      normalizedRole !== "admin" &&
+      normalizedRole !== "responsible" &&
+      normalizedRole !== "gerant" &&
       userId
     ) {
       console.log(
@@ -213,25 +216,16 @@ export class BonDeCommandeService {
       if (employee) {
         whereClause.employee_id = employee.id;
 
-        // Add 48-hour time restriction for employees
-        const fortyEightHoursAgo = new Date();
-        fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
-
-        whereClause.created_at = {
-          gte: fortyEightHoursAgo,
-        };
-
         console.log(
-          `[BonDeCommandeService] Found employee record, filtering by employee_id: ${
-            employee.id
-          } and created_at >= ${fortyEightHoursAgo.toISOString()}`
+          `[BonDeCommandeService] Found employee record, filtering by employee_id (no time restriction): ${employee.id}`
         );
       } else {
         console.log(
-          `[BonDeCommandeService] No employee record found for user: ${userId}`
+          `[BonDeCommandeService] No employee record found for user: ${userId}. Returning empty list for employee role.`
         );
+        return [];
       }
-    } else if (userRole === "Admin" || userRole === "Responsible") {
+    } else if (normalizedRole === "admin" || normalizedRole === "responsible") {
       console.log(
         `[BonDeCommandeService] User is admin/responsible, showing all bon de commande`
       );

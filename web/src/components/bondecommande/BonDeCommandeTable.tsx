@@ -433,11 +433,7 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
   }
 
   if (bonDeCommandes.length === 0) {
-    const isRestrictedUser =
-      user &&
-      user.role &&
-      user.role.name !== "Admin" &&
-      user.role.name !== "Responsible";
+    const roleName = user?.role?.name;
 
     return (
       <div className="text-center py-8">
@@ -446,11 +442,9 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
           Aucune bonne de commande trouvée
         </h3>
         <p className="text-gray-500">
-          {isRestrictedUser
-            ? user.role?.name === "Gerant"
-              ? "Aucune bonne de commande de vos employés assignés dans les dernières 48 heures"
-              : "Aucune bonne de commande n'a été créée dans les dernières 48 heures"
-            : "Aucune bonne de commande n'a été créée pour le moment"}
+          {roleName === "Gerant"
+            ? "Aucune bonne de commande de vos employés assignés dans les dernières 48 heures"
+            : "Aucune bonne de commande n'a été créée"}
         </p>
       </div>
     );
@@ -458,22 +452,18 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
 
   return (
     <>
-      {/* 48-hour notice for employees and Gerant */}
-      {user &&
-        user.role &&
-        user.role.name !== "Admin" &&
-        user.role.name !== "Responsible" && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 text-blue-600 mr-2" />
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Vous ne voyez que les bonnes de commande
-                des dernières 48 heures.
-                {user.role.name === "Gerant" && " (de vos employés assignés)"}
-              </p>
-            </div>
+      {/* 48-hour notice for Gerant only */}
+      {user && user.role && user.role.name === "Gerant" && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 text-blue-600 mr-2" />
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Vous ne voyez que les bonnes de commande
+              des dernières 48 heures (de vos employés assignés).
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-gray-300">

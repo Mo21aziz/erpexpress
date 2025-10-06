@@ -6,9 +6,10 @@ import { AxiosError } from "axios";
 import { BonDeCommandeTable } from "../../components/bondecommande/BonDeCommandeTable";
 import { BonDeCommandeDetailModal } from "../../components/bondecommande/BonDeCommandeDetailModal";
 import { Button } from "@/components/ui/button";
-import { FileDown, Clock } from "lucide-react";
+import { FileDown, Clock, Plus } from "lucide-react";
 import { exportBonDeCommandeToPDF } from "../../utils/pdfExport";
 import { useAuth } from "../../contexts/AuthContext";
+import NewBonDeCommandeModal from "@/components/bondecommande/NewBonDeCommandeModal";
 
 export function ListesBonnesCommandePage() {
   const [bonDeCommandes, setBonDeCommandes] = useState<BonDeCommande[]>([]);
@@ -17,6 +18,7 @@ export function ListesBonnesCommandePage() {
   const [selectedBonDeCommande, setSelectedBonDeCommande] =
     useState<BonDeCommande | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -134,27 +136,33 @@ export function ListesBonnesCommandePage() {
         Consultez et gérez toutes les bonnes de commande
       </p>
 
-      {/* 48-hour notice for employees and Gerant */}
-      {user &&
-        user.role &&
-        user.role.name !== "Admin" &&
-        user.role.name !== "Responsible" && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <div className="flex items-center">
-              <Clock className="h-5 w-5 text-blue-600 mr-3" />
-              <div>
-                <h3 className="text-sm font-medium text-blue-800">
-                  Limitation de visibilité
-                </h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  {user.role.name === "Gerant"
-                    ? "En tant que Gérant, vous ne pouvez voir que les bonnes de commande de vos employés assignés des dernières 48 heures."
-                    : "En tant qu'employé, vous ne pouvez voir que les bonnes de commande des dernières 48 heures."}
-                </p>
-              </div>
+      <div className="flex items-center justify-end">
+        <Button
+          onClick={() => setCreateModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nouveau bon de commande
+        </Button>
+      </div>
+
+      {/* Notice for Gerant only (48-hour window) */}
+      {user && user.role && user.role.name === "Gerant" && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center">
+            <Clock className="h-5 w-5 text-blue-600 mr-3" />
+            <div>
+              <h3 className="text-sm font-medium text-blue-800">
+                Limitation de visibilité
+              </h3>
+              <p className="text-sm text-blue-700 mt-1">
+                En tant que Gérant, vous ne pouvez voir que les bonnes de
+                commande de vos employés assignés des dernières 48 heures.
+              </p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {error && (
         <Card className="border-red-200 bg-red-50">
@@ -189,6 +197,16 @@ export function ListesBonnesCommandePage() {
         bonDeCommande={selectedBonDeCommande}
         onUpdate={handleBonDeCommandeUpdate}
         onStatusChange={handleStatusChange}
+      />
+
+      {/* New Bon De Commande Modal */}
+      <NewBonDeCommandeModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreated={() => {
+          // Refresh list after creation
+          fetchBonDeCommandes();
+        }}
       />
     </div>
   );

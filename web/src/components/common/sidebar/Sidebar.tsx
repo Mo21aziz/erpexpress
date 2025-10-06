@@ -156,11 +156,13 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
 
               {commandOpen && (
                 <div className="pl-8 space-y-2 bg-green-50/50 rounded-lg p-2 border-l-2 border-green-200">
-                  <SidebarItem
-                    icon={<Settings className="h-4 w-4" />}
-                    label="Affectation des ressources"
-                    href="/affectation-ressources"
-                  />
+                  {userIsAdmin && (
+                    <SidebarItem
+                      icon={<Settings className="h-4 w-4" />}
+                      label="Affectation des ressources"
+                      href="/affectation-ressources"
+                    />
+                  )}
                   <SidebarItem
                     icon={<List className="h-4 w-4" />}
                     label="Listes des bonnes de commande"
@@ -227,13 +229,15 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             </button>
             {commandOpen && (
               <div className="flex flex-col items-center space-y-2">
-                <Link
-                  to="/affectation-ressources"
-                  className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
-                  title="Affectation des ressources"
-                >
-                  <Settings className="h-4 w-4" />
-                </Link>
+                {userIsAdmin && (
+                  <Link
+                    to="/affectation-ressources"
+                    className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"
+                    title="Affectation des ressources"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Link>
+                )}
                 <Link
                   to="/listes-bonnes-commande"
                   className="p-1 hover:bg-green-100/80 rounded-lg text-green-600 text-xs transition-colors"

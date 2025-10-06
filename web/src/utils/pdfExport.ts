@@ -161,6 +161,7 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
       // Redraw the text after applying background
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
       doc.text(
         data.cell.text,
         data.cell.x + 1,
@@ -182,6 +183,7 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
       minCellHeight: baseRowHeight,
       fontStyle: "bold",
       font: "helvetica",
+      textColor: [0, 0, 0],
     },
     headStyles: {
       fillColor: [66, 139, 202],
@@ -192,6 +194,7 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
     bodyStyles: {
       fontSize: 10,
       fontStyle: "bold",
+      textColor: [0, 0, 0],
     },
     columnStyles: {
       // First column set
@@ -213,6 +216,12 @@ export const exportBonDeCommandeToPDF = (bonDeCommande: BonDeCommande) => {
     pageBreak: "avoid",
     horizontalPageBreak: false,
     didDrawCell: didDrawCell,
+    didParseCell: (data: any) => {
+      // Force black text for all body cells
+      if (data.section === "body") {
+        data.cell.styles.textColor = [0, 0, 0];
+      }
+    },
   });
 
   const fileName = `bon_de_commande_${bonDeCommande.code}_${targetDate.replace(
