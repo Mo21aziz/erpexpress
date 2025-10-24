@@ -51,18 +51,18 @@ export const ArticlesTable = ({
       price !== null &&
       typeof price.toNumber === "function"
     ) {
-      return `${price.toNumber().toFixed(2)} DH`;
+      return `${price.toNumber().toFixed(2)} DT`;
     }
 
     // Handle regular numbers
     if (typeof price === "number") {
-      return `${price.toFixed(2)} DH`;
+      return `${price.toFixed(2)} DT`;
     }
 
     // Handle string numbers
     const numPrice = Number(price);
     if (!isNaN(numPrice)) {
-      return `${numPrice.toFixed(2)} DH`;
+      return `${numPrice.toFixed(2)} DT`;
     }
 
     return "N/A";

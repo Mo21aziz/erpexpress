@@ -677,7 +677,7 @@ export const BonDeCommandeDetailModal: React.FC<
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Détails de la bonne de commande
+                  Détails du bon de commande
                 </h2>
                 <p className="text-gray-600">Code: {bonDeCommande.code}</p>
               </div>

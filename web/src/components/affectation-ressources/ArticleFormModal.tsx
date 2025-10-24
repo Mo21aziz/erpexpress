@@ -210,7 +210,7 @@ export function ArticleFormModal({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Article Name</Label>
+            <Label htmlFor="name">Nom de l'article</Label>
             <Input
               id="name"
               value={formData.name}
@@ -243,7 +243,7 @@ export function ArticleFormModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="price">Prix</Label>
             <Input
               id="price"
               type="number"
@@ -276,7 +276,7 @@ export function ArticleFormModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type">Article Type</Label>
+            <Label htmlFor="type">Type d'article</Label>
             <select
               id="type"
               value={formData.type}

@@ -439,12 +439,12 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
       <div className="text-center py-8">
         <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-600 mb-2">
-          Aucune bonne de commande trouvée
+          Aucun bon de commande trouvé
         </h3>
         <p className="text-gray-500">
           {roleName === "Gerant"
-            ? "Aucune bonne de commande de vos employés assignés dans les dernières 48 heures"
-            : "Aucune bonne de commande n'a été créée"}
+            ? "Aucun bon de commande de vos employés assignés dans les dernières 48 heures"
+            : "Aucun bon de commande n'a été crée"}
         </p>
       </div>
     );
@@ -458,7 +458,7 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
           <div className="flex items-center">
             <Clock className="h-4 w-4 text-blue-600 mr-2" />
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Vous ne voyez que les bonnes de commande
+              <strong>Note:</strong> Vous ne voyez que les bons de commande
               des dernières 48 heures (de vos employés assignés).
             </p>
           </div>
@@ -470,7 +470,7 @@ export const BonDeCommandeTable: React.FC<BonDeCommandeTableProps> = ({
           <thead>
             <tr className="bg-gray-50">
               <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
-                Code de bonne de commande
+                Code du bon de commande
               </th>
               <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
                 Date pour le

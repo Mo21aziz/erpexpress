@@ -106,15 +106,15 @@ export function UsersPage() {
     <div className="space-y-6 relative">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-gray-600">Manage user accounts</p>
+          <h1 className="text-2xl font-bold text-gray-900">Les utilisateurs</h1>
+          <p className="text-gray-600">Gérer les comptes utilisateurs</p>
         </div>
         <Button
           className="bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
           onClick={() => setShowAddModal(true)}
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          Add User
+          Ajouter utilisateur
         </Button>
       </div>
 

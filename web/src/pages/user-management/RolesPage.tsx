@@ -111,13 +111,13 @@ export function RolesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Roles Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Gestion des rôles</h1>
         <Button
           onClick={() => setShowAddModal(true)}
           className="bg-purple-600 hover:bg-purple-700"
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          Add Role
+          Ajouter rôle
         </Button>
       </div>
 

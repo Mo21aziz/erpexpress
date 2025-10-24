@@ -165,7 +165,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   )}
                   <SidebarItem
                     icon={<List className="h-4 w-4" />}
-                    label="Listes des bonnes de commande"
+                    label="Liste des bons de commande"
                     href="/listes-bonnes-commande"
                   />
                 </div>
@@ -191,7 +191,9 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   >
                     <div className="flex items-center space-x-3">
                       <Users className="h-5 w-5 text-green-600" />
-                      <span className="font-medium">User Management</span>
+                      <span className="font-medium">
+                        Gestion des utilisateurs
+                      </span>
                     </div>
                     {usersOpen ? (
                       <ChevronDown className="h-4 w-4 text-green-600" />
@@ -204,7 +206,7 @@ export const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                     <div className="pl-8 space-y-2 bg-green-50/50 rounded-lg p-2 border-l-2 border-green-200">
                       <SidebarItem
                         icon={<User className="h-4 w-4" />}
-                        label="Utilisateur"
+                        label="Utilisateurs"
                         href="/user-management/users"
                       />
                       <SidebarItem

@@ -25,7 +25,7 @@ export const Header = ({ isSidebarOpen, toggleSidebar }: HeaderProps) => {
       case "/affectation-ressources":
         return "Affectation des ressources";
       case "/listes-bonnes-commande":
-        return "Listes des bonnes de commande";
+        return "Listes des bons de commande";
       case "/coming-soon":
         return "Bientôt disponible";
       case "/user-management":

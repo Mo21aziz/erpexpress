@@ -130,10 +130,10 @@ export function ListesBonnesCommandePage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">
-        Liste des bonnes de commande
+        Liste des bons de commande
       </h1>
       <p className="text-gray-600 mb-4">
-        Consultez et gérez toutes les bonnes de commande
+        Consultez et gérez toutes les bons de commande
       </p>
 
       <div className="flex items-center justify-end">
@@ -156,7 +156,7 @@ export function ListesBonnesCommandePage() {
                 Limitation de visibilité
               </h3>
               <p className="text-sm text-blue-700 mt-1">
-                En tant que Gérant, vous ne pouvez voir que les bonnes de
+                En tant que Gérant, vous ne pouvez voir que les bons de
                 commande de vos employés assignés des dernières 48 heures.
               </p>
             </div>

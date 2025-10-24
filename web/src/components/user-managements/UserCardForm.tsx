@@ -205,7 +205,7 @@ export const UserFormCard = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">nom d'utilisateur</Label>
             <Input
               id="username"
               value={formData.username}
@@ -289,20 +289,22 @@ export const UserFormCard = ({
           {/* Employee Assignment Section for Gerant Role */}
           {isGerantRole && (
             <div className="space-y-3 border-t pt-4">
-              <Label className="text-sm font-medium">Assign Employees</Label>
+              <Label className="text-sm font-medium">
+                Assigner des employés
+              </Label>
               <p className="text-xs text-gray-600">
-                Select employees that this Gerant will manage:
+                Sélectionnez les employés que ce gérant va gérer :
               </p>
 
               {loadingEmployees ? (
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
                   <p className="text-sm text-gray-500 mt-2">
-                    Loading employees...
+                    chargement des employés...
                   </p>
                 </div>
               ) : employees.length === 0 ? (
-                <p className="text-sm text-gray-500">No employees available</p>
+                <p className="text-sm text-gray-500">Aucun employé disponible</p>
               ) : (
                 <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-3">
                   {employees.map((employee) => (
@@ -344,7 +346,7 @@ export const UserFormCard = ({
       {/* Fixed footer with buttons */}
       <div className="flex justify-end space-x-2 p-6 border-t bg-gray-50 flex-shrink-0">
         <Button variant="ghost" type="button" onClick={onClose}>
-          Cancel
+          Annuler
         </Button>
         <Button
           type="submit"
@@ -353,7 +355,7 @@ export const UserFormCard = ({
           onClick={handleSubmit}
         >
           <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? "Saving..." : "Save"}
+          {isSubmitting ? "Enregistrement en cours..." : "enregistrer"}
         </Button>
       </div>
     </Card>

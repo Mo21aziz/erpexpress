@@ -105,7 +105,7 @@ export const RoleFormCard = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Role Name</Label>
+            <Label htmlFor="name">Nom du rôle</Label>
             <Input
               id="name"
               value={formData.name}
@@ -124,7 +124,7 @@ export const RoleFormCard = ({
       {/* Fixed footer with buttons */}
       <div className="flex justify-end space-x-2 p-6 border-t bg-gray-50 flex-shrink-0">
         <Button variant="ghost" type="button" onClick={onClose}>
-          Cancel
+          Annuler
         </Button>
         <Button
           type="submit"
@@ -133,7 +133,7 @@ export const RoleFormCard = ({
           onClick={handleSubmit}
         >
           <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? "Saving..." : "Save"}
+          {isSubmitting ? "enregistrement en cours..." : "Enregistrer"}
         </Button>
       </div>
     </Card>

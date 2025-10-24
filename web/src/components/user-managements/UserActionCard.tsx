@@ -113,7 +113,7 @@ export const UserActionsCard = ({
       {!showEditForm ? (
         <Card className="w-full max-w-md max-h-[90vh] flex flex-col">
           <CardHeader className="flex flex-row justify-between items-center flex-shrink-0">
-            <CardTitle>Manage User</CardTitle>
+            <CardTitle>Gérer utilisateur</CardTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -132,7 +132,7 @@ export const UserActionsCard = ({
                 className="flex items-center gap-2"
               >
                 <Edit className="h-4 w-4" />
-                Edit User
+                modifier utilisateur
               </Button>
 
               <Button
@@ -146,27 +146,26 @@ export const UserActionsCard = ({
               >
                 <Trash2 className="h-4 w-4" />
                 {currentUser && currentUser.id === user.id
-                  ? "Delete My Account"
-                  : "Delete User"}
+                  ? "supprimer mon compte"
+                  : "supprimer utilisateur"}
               </Button>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-medium">User Details</h4>
+              <h4 className="font-medium">détails utilisateur</h4>
               {currentUser && currentUser.id === user.id && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
                   <div className="flex items-center">
                     <div className="text-yellow-600 mr-2">⚠️</div>
                     <div className="text-sm text-yellow-800">
-                      <strong>This is your account.</strong> Deleting it will
-                      log you out immediately.
+                      <strong>Voici votre compte.</strong>La suppression entraînera votre déconnexion immédiate.
                     </div>
                   </div>
                 </div>
               )}
               <div className="text-sm text-gray-600 space-y-1">
                 <p>
-                  <span className="font-medium">Name:</span> {user.username}
+                  <span className="font-medium">nom d'utilisateur:</span> {user.username}
                 </p>
                 <p>
                   <span className="font-medium">Email:</span> {user.email}
@@ -176,7 +175,7 @@ export const UserActionsCard = ({
                   {user.role?.name || "None"}
                 </p>
                 <p>
-                  <span className="font-medium">Status:</span> Active
+                  <span className="font-medium">Statut:</span> Actif
                 </p>
               </div>
             </div>
@@ -184,14 +183,14 @@ export const UserActionsCard = ({
             {/* Show assigned employees if user is a Gerant */}
             {user.role?.name === "Gerant" && (
               <div className="space-y-2">
-                <h4 className="font-medium">Assigned Employees</h4>
+                <h4 className="font-medium">Employés assignés</h4>
                 {loadingAssignedEmployees ? (
                   <div className="text-center py-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-xs text-gray-500 mt-1">Loading...</p>
+                    <p className="text-xs text-gray-500 mt-1">Chargement…</p>
                   </div>
                 ) : assignedEmployees.length === 0 ? (
-                  <p className="text-sm text-gray-500">No employees assigned</p>
+                  <p className="text-sm text-gray-500">Aucun employé assigné</p>
                 ) : (
                   <div className="max-h-32 overflow-y-auto space-y-1">
                     {assignedEmployees.map((employee) => (
@@ -285,18 +284,18 @@ export const UserActionsCard = ({
             <AlertDialogHeader>
               <AlertDialogTitle>
                 {currentUser && currentUser.id === user.id
-                  ? "Delete Your Account?"
-                  : "Are you absolutely sure?"}
+                  ? "supprimer votre compte?"
+                  : "Est-ce que vous êtes sûr?"}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {currentUser && currentUser.id === user.id ? (
                   <>
-                    <strong className="text-red-600">⚠️ Warning:</strong> You
-                    are about to delete your own account. This action cannot be
-                    undone and you will be automatically logged out.
+                    <strong className="text-red-600">⚠️ Attention:</strong> 
+
+Vous allez supprimer votre compte. Cette action ne peut pas être annulée et vous serez déconnecté automatiquement.
                   </>
                 ) : (
-                  "This action cannot be undone. This will permanently delete the user account."
+                  "Cette action est irréversible. Cela supprimera définitivement le compte utilisateur."
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -305,14 +304,14 @@ export const UserActionsCard = ({
                 onClick={() => setShowDeleteDialog(false)}
                 disabled={isDeleting}
               >
-                Cancel
+                Annuler
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-red-600 hover:bg-red-700"
                 disabled={isDeleting}
               >
-                {isDeleting ? "Deleting..." : "Delete"}
+                {isDeleting ? "Suppression en cours..." : "supprimer"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </div>
