@@ -1,6 +1,6 @@
 // lib/utils/auth.util.ts
 import jwt from "jsonwebtoken";
-import AppConfig from "../config/app.config.ts";
+import AppConfig from "../config/app.config";
 
 export const validateToken = (token: string): any => {
   try {

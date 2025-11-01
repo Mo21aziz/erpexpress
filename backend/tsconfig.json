@@ -3,15 +3,17 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "noEmit": true,          // ← Keep this: No JS files emitted
-    "allowImportingTsExtensions": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "noEmit": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "types": ["node"],
     "lib": ["ES2022"]
   },
-  "include": ["**/*.ts", "prisma/**/*.ts"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

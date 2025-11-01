@@ -1,4 +1,4 @@
-import { ILooseObject, IOptionsObject } from "../interfaces/query-params.ts";
+import { ILooseObject, IOptionsObject } from "../interfaces/query-params";
 
 function parseCondition(
   condition: string,

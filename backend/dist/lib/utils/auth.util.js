@@ -1,0 +1,11 @@
+// lib/utils/auth.util.ts
+import jwt from "jsonwebtoken";
+import AppConfig from "../config/app.config";
+export const validateToken = (token) => {
+    try {
+        return jwt.verify(token, AppConfig.JWT_SECRET);
+    }
+    catch (error) {
+        return null;
+    }
+};
