@@ -19,9 +19,8 @@ export const getAllowedOrigins = (): string[] => {
     "http://localhost:5000", // Backend dev server
 
     // Production origins
-    "https://erpexpress.vercel.app", // Your Vercel frontend
-    "https://erpexpress-1.onrender.com", // Your Render backend (for direct access)
-    "https://erpexpress-4kst3xt35-medazizzarrouks-projects.vercel.app", // Vercel preview
+    'https://commande.catering-concept.com',
+    'https://www.commande.catering-concept.com', // Vercel preview
   ];
 };
 
