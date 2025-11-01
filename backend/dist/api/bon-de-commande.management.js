@@ -1,9 +1,14 @@
-import express from "express";
-import container from "../lib/container";
-import { authenticateToken } from "../middleware/auth.middleware";
-const router = express.Router();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const container_1 = __importDefault(require("../lib/container"));
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const router = express_1.default.Router();
 // Create bon de commande
-router.post("/", authenticateToken, async (req, res) => {
+router.post("/", auth_middleware_1.authenticateToken, async (req, res) => {
     const startTime = Date.now();
     // Set headers to prevent connection reset
     res.setHeader("Connection", "keep-alive");
@@ -44,7 +49,7 @@ router.post("/", authenticateToken, async (req, res) => {
         let finalEmployeeId = employee_id;
         if (!finalEmployeeId) {
             // Find the employee record for the current authenticated user
-            const currentUserEmployee = await container.prisma.employee.findFirst({
+            const currentUserEmployee = await container_1.default.prisma.employee.findFirst({
                 where: {
                     user_id: req.user.id,
                 },
@@ -55,7 +60,7 @@ router.post("/", authenticateToken, async (req, res) => {
             }
             else {
                 // If no employee record exists for the current user, create one
-                const newEmployee = await container.prisma.employee.create({
+                const newEmployee = await container_1.default.prisma.employee.create({
                     data: {
                         user_id: req.user.id,
                     },
@@ -83,7 +88,7 @@ router.post("/", authenticateToken, async (req, res) => {
         const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
         const endOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1);
         // First, just check if bon de commande exists without complex includes
-        const existingBonDeCommandeBasic = await container.prisma.bonDeCommande.findFirst({
+        const existingBonDeCommandeBasic = await container_1.default.prisma.bonDeCommande.findFirst({
             where: {
                 employee_id: finalEmployeeId,
                 target_date: {
@@ -98,7 +103,7 @@ router.post("/", authenticateToken, async (req, res) => {
         });
         if (existingBonDeCommandeBasic) {
             // Check if article entry already exists (much faster query)
-            const existingArticleEntry = await container.prisma.bonDeCommandeCategory.findFirst({
+            const existingArticleEntry = await container_1.default.prisma.bonDeCommandeCategory.findFirst({
                 where: {
                     bon_de_commande_id: existingBonDeCommandeBasic.id,
                     article_id: article_id,
@@ -126,7 +131,7 @@ router.post("/", authenticateToken, async (req, res) => {
                     });
                     // Update the existing article entry
                     // Convert null values to 0 for database storage
-                    await container.prisma.bonDeCommandeCategory.update({
+                    await container_1.default.prisma.bonDeCommandeCategory.update({
                         where: { id: existingArticleEntry.id },
                         data: {
                             quantite_a_stocker: quantite_a_stocker ?? 0,
@@ -146,7 +151,7 @@ router.post("/", authenticateToken, async (req, res) => {
                     quantite_a_stocker,
                     quantite_a_demander,
                 });
-                await container.prisma.bonDeCommandeCategory.create({
+                await container_1.default.prisma.bonDeCommandeCategory.create({
                     data: {
                         bon_de_commande_id: existingBonDeCommandeBasic.id,
                         category_id,
@@ -157,7 +162,7 @@ router.post("/", authenticateToken, async (req, res) => {
                 });
             }
             // Update target date if needed
-            await container.prisma.bonDeCommande.update({
+            await container_1.default.prisma.bonDeCommande.update({
                 where: { id: existingBonDeCommandeBasic.id },
                 data: { target_date: targetDate },
             });
@@ -180,7 +185,7 @@ router.post("/", authenticateToken, async (req, res) => {
             day: "numeric",
         })}`;
         // Generate the next code
-        const lastBonDeCommande = await container.prisma.bonDeCommande.findFirst({
+        const lastBonDeCommande = await container_1.default.prisma.bonDeCommande.findFirst({
             orderBy: {
                 code: "desc",
             },
@@ -191,7 +196,7 @@ router.post("/", authenticateToken, async (req, res) => {
             const nextNumber = lastNumber + 1;
             code = `BC-${nextNumber.toString().padStart(2, "0")}`;
         }
-        const bonDeCommande = await container.prisma.bonDeCommande.create({
+        const bonDeCommande = await container_1.default.prisma.bonDeCommande.create({
             data: {
                 code,
                 description: dateDescription,
@@ -203,7 +208,7 @@ router.post("/", authenticateToken, async (req, res) => {
         });
         // Create the bon de commande category relationship
         // Convert null values to 0 for database storage
-        await container.prisma.bonDeCommandeCategory.create({
+        await container_1.default.prisma.bonDeCommandeCategory.create({
             data: {
                 bon_de_commande_id: bonDeCommande.id,
                 category_id,
@@ -248,16 +253,16 @@ router.post("/", authenticateToken, async (req, res) => {
     }
 });
 // Get all bon de commande
-router.get("/", authenticateToken, async (req, res) => {
+router.get("/", auth_middleware_1.authenticateToken, async (req, res) => {
     try {
         console.log(`[Router] GET / - User ID: ${req.user.id}, Role ID: ${req.user.roleId}`);
         // Get the user's role to determine what they can see
-        const userRole = await container.prisma.role.findUnique({
+        const userRole = await container_1.default.prisma.role.findUnique({
             where: { id: req.user.roleId },
             select: { name: true },
         });
         console.log(`[Router] User role from database:`, userRole);
-        const bonDeCommandes = await container.BonDeCommandeService.getAllBonDeCommande(req.user.id, userRole?.name);
+        const bonDeCommandes = await container_1.default.BonDeCommandeService.getAllBonDeCommande(req.user.id, userRole?.name);
         res.status(200).json(bonDeCommandes);
     }
     catch (error) {
@@ -266,9 +271,9 @@ router.get("/", authenticateToken, async (req, res) => {
     }
 });
 // Get bon de commande by ID
-router.get("/:id", authenticateToken, async (req, res) => {
+router.get("/:id", auth_middleware_1.authenticateToken, async (req, res) => {
     try {
-        const bonDeCommande = await container.BonDeCommandeService.getBonDeCommandeById(req.params.id);
+        const bonDeCommande = await container_1.default.BonDeCommandeService.getBonDeCommandeById(req.params.id);
         if (!bonDeCommande) {
             return res.status(404).json({ error: "Bon de commande not found" });
         }
@@ -279,7 +284,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
     }
 });
 // Update bon de commande category
-router.put("/category/:id", authenticateToken, async (req, res) => {
+router.put("/category/:id", auth_middleware_1.authenticateToken, async (req, res) => {
     try {
         console.log("[BonDeCommande API] Updating category ID:", req.params.id, "Data:", req.body);
         const { quantite_a_stocker, quantite_a_demander } = req.body;
@@ -294,7 +299,7 @@ router.put("/category/:id", authenticateToken, async (req, res) => {
             updateData.quantite_a_stocker = quantite_a_stocker;
         if (quantite_a_demander !== undefined)
             updateData.quantite_a_demander = quantite_a_demander;
-        const updatedCategory = await container.BonDeCommandeService.updateCategory(req.params.id, updateData);
+        const updatedCategory = await container_1.default.BonDeCommandeService.updateCategory(req.params.id, updateData);
         if (!updatedCategory) {
             return res.status(404).json({ error: "Category not found" });
         }
@@ -307,9 +312,9 @@ router.put("/category/:id", authenticateToken, async (req, res) => {
     }
 });
 // Update bon de commande
-router.put("/:id", authenticateToken, async (req, res) => {
+router.put("/:id", auth_middleware_1.authenticateToken, async (req, res) => {
     try {
-        const bonDeCommande = await container.BonDeCommandeService.updateBonDeCommande(req.params.id, req.body);
+        const bonDeCommande = await container_1.default.BonDeCommandeService.updateBonDeCommande(req.params.id, req.body);
         res.status(200).json(bonDeCommande);
     }
     catch (error) {
@@ -317,7 +322,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
     }
 });
 // Update bon de commande status
-router.put("/:id/status", authenticateToken, async (req, res) => {
+router.put("/:id/status", auth_middleware_1.authenticateToken, async (req, res) => {
     try {
         console.log("[BonDeCommande API] Updating status for ID:", req.params.id, "New status:", req.body.status);
         const { status } = req.body;
@@ -326,7 +331,7 @@ router.put("/:id/status", authenticateToken, async (req, res) => {
                 .status(400)
                 .json({ error: "Status must be 'en attente' or 'confirmer'" });
         }
-        const updatedBonDeCommande = await container.BonDeCommandeService.updateStatus(req.params.id, status);
+        const updatedBonDeCommande = await container_1.default.BonDeCommandeService.updateStatus(req.params.id, status);
         if (!updatedBonDeCommande) {
             return res.status(404).json({ error: "Bon de commande not found" });
         }
@@ -339,13 +344,13 @@ router.put("/:id/status", authenticateToken, async (req, res) => {
     }
 });
 // Delete bon de commande
-router.delete("/:id", authenticateToken, async (req, res) => {
+router.delete("/:id", auth_middleware_1.authenticateToken, async (req, res) => {
     try {
-        const bonDeCommande = await container.BonDeCommandeService.deleteBonDeCommande(req.params.id);
+        const bonDeCommande = await container_1.default.BonDeCommandeService.deleteBonDeCommande(req.params.id);
         res.status(200).json(bonDeCommande);
     }
     catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
-export default router;
+exports.default = router;

@@ -1,8 +1,14 @@
-import { comparePasswords } from "../../utils/hash.util";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import AppConfig from "../../config/app.config";
-export class AuthService {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthService = void 0;
+const hash_util_1 = require("../../utils/hash.util");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const app_config_1 = __importDefault(require("../../config/app.config"));
+class AuthService {
     userService;
     constructor(userService) {
         this.userService = userService;
@@ -18,12 +24,12 @@ export class AuthService {
             iat: Math.floor(Date.now() / 1000),
             exp: Math.floor(Date.now() / 1000) + 3 * 60 * 60, // 3 hours
         };
-        const accessToken = jwt.sign(payload, AppConfig.JWT_SECRET);
-        const refreshToken = jwt.sign(payload, AppConfig.JWT_SECRET);
+        const accessToken = jsonwebtoken_1.default.sign(payload, app_config_1.default.JWT_SECRET);
+        const refreshToken = jsonwebtoken_1.default.sign(payload, app_config_1.default.JWT_SECRET);
         return { accessToken, refreshToken };
     }
     async saveRefreshToken(userId, refreshToken) {
-        const hashedToken = await bcrypt.hash(refreshToken, 10);
+        const hashedToken = await bcrypt_1.default.hash(refreshToken, 10);
         await this.userService.updateUser(userId, { refreshToken: hashedToken });
     }
     async connect(payload) {
@@ -38,7 +44,7 @@ export class AuthService {
         if (!user.password) {
             throw new Error("mot de passe incorrect");
         }
-        const isMatch = await comparePasswords(payload.password, user.password);
+        const isMatch = await (0, hash_util_1.comparePasswords)(payload.password, user.password);
         if (!isMatch) {
             throw new Error("mot de passe incorrect");
         }
@@ -88,7 +94,7 @@ export class AuthService {
         if (!user || !user.refreshToken) {
             throw new Error("Invalid refresh token");
         }
-        const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+        const isValid = await bcrypt_1.default.compare(refreshToken, user.refreshToken);
         if (!isValid) {
             throw new Error("Invalid refresh token");
         }
@@ -101,3 +107,4 @@ export class AuthService {
         return { accessToken, refreshToken: newRefreshToken };
     }
 }
+exports.AuthService = AuthService;

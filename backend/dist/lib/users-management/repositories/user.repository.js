@@ -1,5 +1,8 @@
-import { BaseRepository } from "../../../prisma/repositories/prisma-abstract-repository";
-export class UserRepository extends BaseRepository {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserRepository = void 0;
+const prisma_abstract_repository_1 = require("../../../prisma/repositories/prisma-abstract-repository");
+class UserRepository extends prisma_abstract_repository_1.BaseRepository {
     constructor(prisma) {
         super(prisma.user, prisma);
     }
@@ -45,3 +48,4 @@ export class UserRepository extends BaseRepository {
         });
     }
 }
+exports.UserRepository = UserRepository;

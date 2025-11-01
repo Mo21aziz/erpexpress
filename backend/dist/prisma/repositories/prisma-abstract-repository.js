@@ -1,5 +1,8 @@
-import { parseFilters, parseJoin, parseSelect, parseSort, } from "../utilities/query-params-parser";
-export class BaseRepository {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BaseRepository = void 0;
+const query_params_parser_1 = require("../utilities/query-params-parser");
+class BaseRepository {
     prisma;
     model;
     constructor(model, prisma) {
@@ -8,12 +11,12 @@ export class BaseRepository {
     }
     async findPaginated(queryObject, options = {}, supportSoftDelete = false) {
         const { filter, sort, size = options.DEFAULT_LIMIT || "10", page = "1", fields, join, search, } = queryObject;
-        let where = parseFilters(filter, options, search, await this.getFields());
-        const orderBy = parseSort(sort);
+        let where = (0, query_params_parser_1.parseFilters)(filter, options, search, await this.getFields());
+        const orderBy = (0, query_params_parser_1.parseSort)(sort);
         const take = parseInt(size, 10);
         const skip = (parseInt(page, 10) - 1) * take;
-        const select = parseSelect(fields);
-        const include = parseJoin(join);
+        const select = (0, query_params_parser_1.parseSelect)(fields);
+        const include = (0, query_params_parser_1.parseJoin)(join);
         const [data, itemCount] = await Promise.all([
             this.model.findMany({
                 where,
@@ -43,10 +46,10 @@ export class BaseRepository {
     }
     async findByCondition(queryObject, options = {}, supportSoftDelete = false) {
         const { filter, sort, fields, join, search } = queryObject;
-        let where = parseFilters(filter, options, search, await this.getFields());
-        const orderBy = parseSort(sort);
-        const select = parseSelect(fields);
-        const include = parseJoin(join);
+        let where = (0, query_params_parser_1.parseFilters)(filter, options, search, await this.getFields());
+        const orderBy = (0, query_params_parser_1.parseSort)(sort);
+        const select = (0, query_params_parser_1.parseSelect)(fields);
+        const include = (0, query_params_parser_1.parseJoin)(join);
         return this.model.findMany({
             where,
             orderBy,
@@ -149,3 +152,4 @@ export class BaseRepository {
         return Object.keys(record).filter((key) => typeof record[key] === "string");
     }
 }
+exports.BaseRepository = BaseRepository;

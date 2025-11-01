@@ -1,9 +1,12 @@
-import { PrismaClient } from "@prisma/client";
-import { roles } from "../data/role.data";
-export async function seedRoles() {
-    const prisma = new PrismaClient();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.seedRoles = seedRoles;
+const client_1 = require("@prisma/client");
+const role_data_1 = require("../data/role.data");
+async function seedRoles() {
+    const prisma = new client_1.PrismaClient();
     try {
-        const upsertPromises = roles.map((role) => prisma.role.upsert({
+        const upsertPromises = role_data_1.roles.map((role) => prisma.role.upsert({
             where: { name: role.name },
             update: {},
             create: {

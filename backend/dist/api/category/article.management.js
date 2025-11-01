@@ -1,11 +1,16 @@
-import express from "express";
-import container from "../../lib/container";
-const router = express.Router();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const container_1 = __importDefault(require("../../lib/container"));
+const router = express_1.default.Router();
 // Create Article
 router.post("/", async (req, res) => {
     try {
         console.log("[Article API] Creating article with data:", req.body);
-        const article = await container.ArticleService.createArticle(req.body);
+        const article = await container_1.default.ArticleService.createArticle(req.body);
         console.log("[Article API] Article created successfully:", article);
         res.status(201).json(article);
     }
@@ -17,7 +22,7 @@ router.post("/", async (req, res) => {
 // Get Article by ID
 router.get("/:id", async (req, res) => {
     try {
-        const article = await container.ArticleService.getArticleById(req.params.id);
+        const article = await container_1.default.ArticleService.getArticleById(req.params.id);
         if (!article)
             return res.status(404).json({ error: "Article not found" });
         res.status(200).json(article);
@@ -31,7 +36,7 @@ router.put("/:id", async (req, res) => {
     try {
         console.log("[Article API] Updating article with ID:", req.params.id);
         console.log("[Article API] Update data:", req.body);
-        const article = await container.ArticleService.updateArticle(req.params.id, req.body);
+        const article = await container_1.default.ArticleService.updateArticle(req.params.id, req.body);
         console.log("[Article API] Article updated successfully:", article);
         res.status(200).json(article);
     }
@@ -45,7 +50,7 @@ router.put("/:id", async (req, res) => {
 // Delete Article
 router.delete("/:id", async (req, res) => {
     try {
-        const article = await container.ArticleService.deleteArticle(req.params.id);
+        const article = await container_1.default.ArticleService.deleteArticle(req.params.id);
         res.status(200).json(article);
     }
     catch (error) {
@@ -55,7 +60,7 @@ router.delete("/:id", async (req, res) => {
 // Get Articles by Category
 router.get("/by-category/:categoryId", async (req, res) => {
     try {
-        const articles = await container.ArticleService.getArticlesByCategory(req.params.categoryId);
+        const articles = await container_1.default.ArticleService.getArticlesByCategory(req.params.categoryId);
         res.status(200).json(articles);
     }
     catch (error) {
@@ -68,12 +73,12 @@ router.get("/", async (req, res) => {
         const { category_id } = req.query;
         if (category_id) {
             // If category_id is provided, get articles for that specific category
-            const articles = await container.ArticleService.getArticlesByCategory(category_id);
+            const articles = await container_1.default.ArticleService.getArticlesByCategory(category_id);
             res.status(200).json(articles);
         }
         else {
             // If no category_id, get all articles
-            const articles = await container.ArticleService.getAllArticles(req.query);
+            const articles = await container_1.default.ArticleService.getAllArticles(req.query);
             res.status(200).json(articles);
         }
     }
@@ -81,4 +86,4 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-export default router;
+exports.default = router;

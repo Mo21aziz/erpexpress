@@ -1,14 +1,19 @@
-import express from "express";
-import jwt from "jsonwebtoken";
-import container from "../../lib/container";
-import AppConfig from "../../lib/config/app.config";
-const router = express.Router();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const container_1 = __importDefault(require("../../lib/container"));
+const app_config_1 = __importDefault(require("../../lib/config/app.config"));
+const router = express_1.default.Router();
 router.post("/connect", async (req, res) => {
     console.log("=== AUTH CONNECT ROUTE HIT ===");
     console.log("Request method:", req.method);
     console.log("Request body:", req.body);
     console.log("Request headers:", req.headers);
-    const authService = container.AuthService;
+    const authService = container_1.default.AuthService;
     try {
         const { username, password } = req.body;
         console.log("Connect route received:", {
@@ -29,7 +34,7 @@ router.post("/connect", async (req, res) => {
     }
 });
 router.post("/register", async (req, res) => {
-    const authService = container.AuthService;
+    const authService = container_1.default.AuthService;
     try {
         const { username, email, password, role_id } = req.body;
         console.log("Register route received:", { username, email, role_id });
@@ -54,14 +59,14 @@ router.post("/register", async (req, res) => {
     }
 });
 router.post("/refresh", async (req, res) => {
-    const authService = container.AuthService;
+    const authService = container_1.default.AuthService;
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
             return res.status(400).json({ error: "Refresh token is required" });
         }
         // Decode the refresh token to get user ID
-        const decoded = jwt.verify(refreshToken, AppConfig.JWT_SECRET);
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, app_config_1.default.JWT_SECRET);
         if (!decoded || !decoded.sub) {
             return res.status(401).json({ error: "Invalid refresh token" });
         }
@@ -73,4 +78,4 @@ router.post("/refresh", async (req, res) => {
         res.status(401).json({ error: "Invalid refresh token" });
     }
 });
-export default router;
+exports.default = router;

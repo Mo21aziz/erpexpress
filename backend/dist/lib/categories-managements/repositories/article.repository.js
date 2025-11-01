@@ -1,4 +1,7 @@
-export class ArticleRepository {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ArticleRepository = void 0;
+class ArticleRepository {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
@@ -55,3 +58,4 @@ export class ArticleRepository {
         });
     }
 }
+exports.ArticleRepository = ArticleRepository;

@@ -1,8 +1,7 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "index.ts",
-  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon -e ts --exec \"tsx ./index.ts\"",
     "type-check": "tsc --noEmit",

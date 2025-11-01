@@ -1,4 +1,7 @@
-export class ArticleService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ArticleService = void 0;
+class ArticleService {
     articleRepository;
     prisma;
     constructor(articleRepository, prisma) {
@@ -137,3 +140,4 @@ export class ArticleService {
         return await this.articleRepository.findByCondition({ where: { category_id: categoryId } }, { includeCategory: true });
     }
 }
+exports.ArticleService = ArticleService;

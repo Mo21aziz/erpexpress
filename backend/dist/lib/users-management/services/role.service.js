@@ -1,4 +1,7 @@
-export class RoleService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RoleService = void 0;
+class RoleService {
     roleRepository;
     constructor(roleRepository) {
         this.roleRepository = roleRepository;
@@ -40,3 +43,4 @@ export class RoleService {
         return this.roleRepository.count(where);
     }
 }
+exports.RoleService = RoleService;

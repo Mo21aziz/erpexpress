@@ -1,5 +1,8 @@
-import { hashPassword } from "../../../lib/utils/hash.util";
-export class UserService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserService = void 0;
+const hash_util_1 = require("../../../lib/utils/hash.util");
+class UserService {
     userRepository;
     prisma;
     countUsers(query) {
@@ -46,7 +49,7 @@ export class UserService {
             throw new Error("Specified role does not exist");
         }
         // Hash password
-        const hashedPassword = await hashPassword(data.password);
+        const hashedPassword = await (0, hash_util_1.hashPassword)(data.password);
         // Create user with potential Gerant assignments
         return await this.prisma.$transaction(async (tx) => {
             const user = await this.userRepository.create({
@@ -327,3 +330,4 @@ export class UserService {
         return assignments.map((assignment) => assignment.employee);
     }
 }
+exports.UserService = UserService;

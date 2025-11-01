@@ -1,4 +1,7 @@
-export class BonDeCommandeRepository {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BonDeCommandeRepository = void 0;
+class BonDeCommandeRepository {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
@@ -67,3 +70,4 @@ export class BonDeCommandeRepository {
         });
     }
 }
+exports.BonDeCommandeRepository = BonDeCommandeRepository;

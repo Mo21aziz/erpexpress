@@ -1,7 +1,12 @@
-import express from "express";
-import container from "../../lib/container";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const container_1 = __importDefault(require("../../lib/container"));
 console.log("Role router loaded"); // Debug log
-const router = express.Router();
+const router = express_1.default.Router();
 // Debug middleware to log all requests
 router.use((req, res, next) => {
     console.log(`Role router: ${req.method} ${req.path}`);
@@ -12,7 +17,7 @@ console.log("Registering route: GET /");
 router.get("/", async (req, res) => {
     console.log("GET /api/roles route hit"); // Debug log
     try {
-        const roles = await container.RoleService.getAllRoles(req.query);
+        const roles = await container_1.default.RoleService.getAllRoles(req.query);
         res.status(200).json(roles);
     }
     catch (error) {
@@ -23,7 +28,7 @@ console.log("Registering route: GET /paginated");
 // Get paginated roles
 router.get("/paginated", async (req, res) => {
     try {
-        const result = await container.RoleService.getPaginatedRoles(req.query);
+        const result = await container_1.default.RoleService.getPaginatedRoles(req.query);
         res.status(200).json(result);
     }
     catch (error) {
@@ -34,7 +39,7 @@ console.log("Registering route: GET /count");
 // Count roles
 router.get("/count", async (req, res) => {
     try {
-        const count = await container.RoleService.countRoles(req.query);
+        const count = await container_1.default.RoleService.countRoles(req.query);
         res.status(200).json({ count });
     }
     catch (error) {
@@ -48,7 +53,7 @@ router.post("/", async (req, res) => {
     console.log("Request body:", req.body); // Debug log
     console.log("Request headers:", req.headers); // Debug log
     try {
-        const role = await container.RoleService.createRole(req.body);
+        const role = await container_1.default.RoleService.createRole(req.body);
         res.status(201).json(role);
     }
     catch (error) {
@@ -60,7 +65,7 @@ console.log("Registering route: GET /:id");
 // Get single role by ID
 router.get("/:id", async (req, res) => {
     try {
-        const role = await container.RoleService.getRoleById(req.params.id);
+        const role = await container_1.default.RoleService.getRoleById(req.params.id);
         if (!role) {
             return res.status(404).json({ error: "Role not found" });
         }
@@ -74,7 +79,7 @@ console.log("Registering route: PUT /:id");
 // Update role
 router.put("/:id", async (req, res) => {
     try {
-        const role = await container.RoleService.updateRole(req.params.id, req.body);
+        const role = await container_1.default.RoleService.updateRole(req.params.id, req.body);
         res.status(200).json(role);
     }
     catch (error) {
@@ -85,7 +90,7 @@ console.log("Registering route: POST /:id/duplicate");
 // Duplicate role
 router.post("/:id/duplicate", async (req, res) => {
     try {
-        const role = await container.RoleService.duplicateRole(req.params.id);
+        const role = await container_1.default.RoleService.duplicateRole(req.params.id);
         res.status(201).json(role);
     }
     catch (error) {
@@ -96,11 +101,11 @@ console.log("Registering route: DELETE /:id");
 // Delete role (soft delete)
 router.delete("/:id", async (req, res) => {
     try {
-        const role = await container.RoleService.deleteRole(req.params.id);
+        const role = await container_1.default.RoleService.deleteRole(req.params.id);
         res.status(200).json(role);
     }
     catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
-export default router;
+exports.default = router;

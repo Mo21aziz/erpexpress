@@ -1,4 +1,7 @@
-export class CategoryService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CategoryService = void 0;
+class CategoryService {
     categoryRepository;
     prisma;
     constructor(categoryRepository, prisma) {
@@ -53,3 +56,4 @@ export class CategoryService {
         return this.categoryRepository.delete(id);
     }
 }
+exports.CategoryService = CategoryService;

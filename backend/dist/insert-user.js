@@ -1,8 +1,13 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
 // backend/insert-user.ts
-import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
-const prisma = new PrismaClient();
+require("dotenv/config");
+const client_1 = require("@prisma/client");
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const prisma = new client_1.PrismaClient();
 async function insertUser() {
     try {
         console.log("🔍 Checking if role exists...");
@@ -28,7 +33,7 @@ async function insertUser() {
             return;
         }
         // Hash the password
-        const hashedPassword = await bcrypt.hash("kamel123", 10);
+        const hashedPassword = await bcrypt_1.default.hash("kamel123", 10);
         console.log("✅ Password hashed successfully");
         // Create the user
         const user = await prisma.user.create({

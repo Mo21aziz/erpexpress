@@ -1,3 +1,9 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseFilters = parseFilters;
+exports.parseSort = parseSort;
+exports.parseSelect = parseSelect;
+exports.parseJoin = parseJoin;
 function parseCondition(condition, options) {
     const [field, operator, value] = condition.split(options.LOOKUP_DELIMITER || "||");
     // Force id to always be a string
@@ -46,7 +52,7 @@ function parseCondition(condition, options) {
     }
     return conditionObj;
 }
-export function parseFilters(filter, options = {}, search, searchableFields) {
+function parseFilters(filter, options = {}, search, searchableFields) {
     const where = {};
     if (filter) {
         let andConditions = [];
@@ -92,7 +98,7 @@ export function parseFilters(filter, options = {}, search, searchableFields) {
     }
     return where;
 }
-export function parseSort(sort) {
+function parseSort(sort) {
     if (!sort)
         return undefined;
     const sortFields = sort.split(",");
@@ -125,7 +131,7 @@ function parseValue(value, operator) {
     }
     return inferType(value);
 }
-export function parseSelect(select) {
+function parseSelect(select) {
     if (!select)
         return undefined;
     const fields = select.split(",");
@@ -135,7 +141,7 @@ export function parseSelect(select) {
     });
     return selectObject;
 }
-export function parseJoin(join) {
+function parseJoin(join) {
     if (!join)
         return undefined;
     const relations = join.split(",");

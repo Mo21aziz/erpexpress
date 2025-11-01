@@ -1,29 +1,68 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import { corsConfig } from "./lib/config/cors.config";
-import { getAllowedOrigins } from "./lib/config/cors.config";
-import connect from "./api/auth/connect";
-import categoryRouter from "./api/category/cat.management";
-import articleRouter from "./api/category/article.management";
-import orderRouter from "./api/orders/order.management";
-import bonDeCommandeRouter from "./api/bon-de-commande.management";
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+require("dotenv/config");
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const cors_config_1 = require("./lib/config/cors.config");
+const cors_config_2 = require("./lib/config/cors.config");
+const connect_1 = __importDefault(require("./api/auth/connect"));
+const cat_management_1 = __importDefault(require("./api/category/cat.management"));
+const article_management_1 = __importDefault(require("./api/category/article.management"));
+const order_management_1 = __importDefault(require("./api/orders/order.management"));
+const bon_de_commande_management_1 = __importDefault(require("./api/bon-de-commande.management"));
 let userRouter;
 let roleRouter;
+// Load optional routers (CommonJS compatible)
 try {
-    const userRouterModule = await import("./api/users-managements/user.router");
+    const userRouterModule = require("./api/users-managements/user.router");
     userRouter = userRouterModule.default;
 }
 catch (error) { }
 try {
-    const roleRouterModule = await import("./api/users-managements/role.router");
+    const roleRouterModule = require("./api/users-managements/role.router");
     roleRouter = roleRouterModule.default;
 }
 catch (error) { }
-const app = express();
+const app = (0, express_1.default)();
 const PORT = 5000;
 // Enable CORS
-app.use(cors(corsConfig));
+app.use((0, cors_1.default)(cors_config_1.corsConfig));
 // Add security headers and logging
 app.use((req, res, next) => {
     // Log incoming requests for debugging
@@ -53,7 +92,7 @@ app.use((req, res, next) => {
     res.header("X-XSS-Protection", "1; mode=block");
     next();
 });
-app.use(express.json());
+app.use(express_1.default.json());
 app.get("/api", (req, res) => {
     res.json({
         message: "Hello from Express with TypeScript!",
@@ -66,7 +105,7 @@ app.get("/test", (req, res) => {
 // Debug endpoint to check users
 app.get("/api/debug/users", async (req, res) => {
     try {
-        const { PrismaClient } = await import("@prisma/client");
+        const { PrismaClient } = await Promise.resolve().then(() => __importStar(require("@prisma/client")));
         const prisma = new PrismaClient();
         const users = await prisma.user.findMany({
             select: {
@@ -90,7 +129,7 @@ app.get("/api/debug/users", async (req, res) => {
 // Debug endpoint to check roles
 app.get("/api/debug/roles", async (req, res) => {
     try {
-        const { PrismaClient } = await import("@prisma/client");
+        const { PrismaClient } = await Promise.resolve().then(() => __importStar(require("@prisma/client")));
         const prisma = new PrismaClient();
         const roles = await prisma.role.findMany({
             select: {
@@ -108,7 +147,7 @@ app.get("/api/debug/roles", async (req, res) => {
 // Setup endpoint to create default role and test user
 app.post("/api/debug/setup", async (req, res) => {
     try {
-        const { PrismaClient } = await import("@prisma/client");
+        const { PrismaClient } = await Promise.resolve().then(() => __importStar(require("@prisma/client")));
         const prisma = new PrismaClient();
         // Create default role if it doesn't exist
         let defaultRole = await prisma.role.findFirst({
@@ -124,7 +163,7 @@ app.post("/api/debug/setup", async (req, res) => {
             where: { email: "test@example.com" },
         });
         if (!testUser) {
-            const bcrypt = await import("bcrypt");
+            const bcrypt = await Promise.resolve().then(() => __importStar(require("bcrypt")));
             const hashedPassword = await bcrypt.hash("password123", 10);
             testUser = await prisma.user.create({
                 data: {
@@ -153,7 +192,7 @@ app.post("/api/debug/setup", async (req, res) => {
 // Seed roles endpoint
 app.post("/api/debug/seed-roles", async (req, res) => {
     try {
-        const { PrismaClient } = await import("@prisma/client");
+        const { PrismaClient } = await Promise.resolve().then(() => __importStar(require("@prisma/client")));
         const prisma = new PrismaClient();
         const roles = [
             { name: "Responsible" },
@@ -182,7 +221,7 @@ app.post("/api/debug/seed-roles", async (req, res) => {
 });
 // CORS test endpoint
 app.get("/api/cors-test", (req, res) => {
-    const allowedOrigins = getAllowedOrigins();
+    const allowedOrigins = (0, cors_config_2.getAllowedOrigins)();
     res.json({
         message: "CORS is working!",
         timestamp: new Date().toISOString(),
@@ -197,7 +236,7 @@ app.get("/api/cors-test", (req, res) => {
 });
 // CORS debug endpoint - shows current CORS configuration
 app.get("/api/cors-debug", (req, res) => {
-    const allowedOrigins = getAllowedOrigins();
+    const allowedOrigins = (0, cors_config_2.getAllowedOrigins)();
     res.json({
         message: "CORS Configuration Debug",
         timestamp: new Date().toISOString(),
@@ -210,11 +249,11 @@ app.get("/api/cors-debug", (req, res) => {
         corsOriginsEnv: process.env.CORS_ORIGINS || "Not set",
     });
 });
-app.use("/api/auth", connect);
-app.use("/api/category", categoryRouter);
-app.use("/api/articles", articleRouter);
-app.use("/api/orders", orderRouter);
-app.use("/api/bon-de-commande", bonDeCommandeRouter);
+app.use("/api/auth", connect_1.default);
+app.use("/api/category", cat_management_1.default);
+app.use("/api/articles", article_management_1.default);
+app.use("/api/orders", order_management_1.default);
+app.use("/api/bon-de-commande", bon_de_commande_management_1.default);
 const isExpressRouter = (router) => router &&
     typeof router === "function" &&
     router.stack &&

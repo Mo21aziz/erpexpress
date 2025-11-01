@@ -1,7 +1,10 @@
-import { getEnvironmentConfig } from "./environment.config";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.corsConfig = exports.getAllowedOrigins = void 0;
+const environment_config_1 = require("./environment.config");
 // Define allowed origins for different environments
-export const getAllowedOrigins = () => {
-    const envConfig = getEnvironmentConfig();
+const getAllowedOrigins = () => {
+    const envConfig = (0, environment_config_1.getEnvironmentConfig)();
     // If CORS_ORIGINS environment variable is set, use it
     if (envConfig.CORS_ORIGINS && envConfig.CORS_ORIGINS.length > 0) {
         return envConfig.CORS_ORIGINS;
@@ -18,10 +21,11 @@ export const getAllowedOrigins = () => {
         'https://www.commande.catering-concept.com', // Vercel preview
     ];
 };
+exports.getAllowedOrigins = getAllowedOrigins;
 // CORS configuration
-export const corsConfig = {
+exports.corsConfig = {
     origin: (origin, callback) => {
-        const allowedOrigins = getAllowedOrigins();
+        const allowedOrigins = (0, exports.getAllowedOrigins)();
         const normalize = (url) => url.replace(/^https?:\/\//, "").replace(/\/$/, "");
         const originNormalized = origin ? normalize(origin) : "";
         // Allow Vercel preview URLs for this project (erpexpress-x7fh-*)

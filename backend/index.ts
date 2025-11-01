@@ -12,13 +12,14 @@ import bonDeCommandeRouter from "./api/bon-de-commande.management";
 let userRouter: any;
 let roleRouter: any;
 
+// Load optional routers (CommonJS compatible)
 try {
-  const userRouterModule = await import("./api/users-managements/user.router");
+  const userRouterModule = require("./api/users-managements/user.router");
   userRouter = userRouterModule.default;
 } catch (error) {}
 
 try {
-  const roleRouterModule = await import("./api/users-managements/role.router");
+  const roleRouterModule = require("./api/users-managements/role.router");
   roleRouter = roleRouterModule.default;
 } catch (error) {}
 
